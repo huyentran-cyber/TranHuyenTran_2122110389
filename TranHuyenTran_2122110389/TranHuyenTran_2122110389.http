@@ -1,0 +1,6 @@
+@TranHuyenTran_2122110389_HostAddress = http://localhost:5017
+
+GET {{TranHuyenTran_2122110389_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
