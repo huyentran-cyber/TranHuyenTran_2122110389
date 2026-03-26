@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ConnectDB.Models;
+﻿using ConnectDB.Models;
+using Microsoft.EntityFrameworkCore;
+using TranHuyenTran_2122110389.Models;
 
 namespace TranHuyenTran_2122110389.Data
 {
@@ -10,5 +11,7 @@ namespace TranHuyenTran_2122110389.Data
         }
 
         public DbSet<Student> Students { get; set; }
+
+        public DbSet<Product> Products { get; set; }
     }
 }
