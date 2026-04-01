@@ -13,5 +13,17 @@ namespace TranHuyenTran_2122110389.Data
         public DbSet<Student> Students { get; set; }
 
         public DbSet<Product> Products { get; set; }
+
+
+
+        public DbSet<Employee> Employees { get; set; }
+
+        public DbSet<Position> Positions { get; set; }
+
+        public DbSet<Shift> Shifts { get; set; }
+
+        public DbSet<WorkSchedule> WorkSchedules { get; set; }
+
+        public DbSet<Attendance> Attendances { get; set; }
     }
 }
