@@ -1,34 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TranHuyenTran_2122110389.Data;
-using TranHuyenTran_2122110389.Models;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AttendanceController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IAttendanceService _service;
 
-        public AttendanceController(AppDbContext context)
+        public AttendanceController(IAttendanceService service)
         {
-            _context = context;
+            _service = service;
         }
 
-        [HttpGet]
-        public IActionResult GetAll()
+        private int GetUserId()
         {
-            return Ok(_context.Attendances.Include(x => x.Employee));
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
         }
 
-        [HttpPost]
-        public IActionResult CheckIn(Attendance model)
+        [HttpPost("checkin")]
+        public IActionResult CheckIn()
         {
-            _context.Attendances.Add(model);
-            _context.SaveChanges();
+            try
+            {
+                var userId = GetUserId();
+                return Ok(_service.CheckIn(userId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-            return Ok(model);
+        [HttpPost("checkout")]
+        public IActionResult CheckOut()
+        {
+            try
+            {
+                var userId = GetUserId();
+                return Ok(_service.CheckOut(userId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

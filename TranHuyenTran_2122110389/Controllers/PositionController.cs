@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.Data;
+using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Models;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PositionController : ControllerBase
@@ -15,37 +18,61 @@ namespace TranHuyenTran_2122110389.Controllers
             _context = context;
         }
 
+        // GET ALL
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_context.Positions);
+            var data = _context.Positions.Select(x => new PositionDTO
+            {
+                Id = x.Id,
+                Name = x.Name,
+                HourlyRate = x.HourlyRate,
+                MinStaff = x.MinStaff,
+                MaxShiftPerDay = x.MaxShiftPerDay
+            });
+
+            return Ok(data);
         }
 
+        // CREATE
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public IActionResult Create(Position model)
+        public IActionResult Create(PositionDTO dto)
         {
-            _context.Positions.Add(model);
+            var position = new Position
+            {
+                Name = dto.Name,
+                HourlyRate = dto.HourlyRate,
+                MinStaff = dto.MinStaff,
+                MaxShiftPerDay = dto.MaxShiftPerDay
+            };
+
+            _context.Positions.Add(position);
             _context.SaveChanges();
 
-            return Ok(model);
+            return Ok(position);
         }
 
+        // UPDATE
         [HttpPut("{id}")]
-        public IActionResult Update(int id, Position model)
+        public IActionResult Update(int id, PositionDTO dto)
         {
             var data = _context.Positions.Find(id);
 
             if (data == null)
                 return NotFound();
 
-            data.Name = model.Name;
-            data.HourlyRate = model.HourlyRate;
+            data.Name = dto.Name;
+            data.HourlyRate = dto.HourlyRate;
+            data.MinStaff = dto.MinStaff;
+            data.MaxShiftPerDay = dto.MaxShiftPerDay;
 
             _context.SaveChanges();
 
             return Ok(data);
         }
 
+        // DELETE
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
@@ -57,7 +84,7 @@ namespace TranHuyenTran_2122110389.Controllers
             _context.Positions.Remove(data);
             _context.SaveChanges();
 
-            return Ok();
+            return Ok("Deleted successfully");
         }
     }
 }

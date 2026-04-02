@@ -19,6 +19,7 @@ namespace TranHuyenTran_2122110389.Helpers
         {
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()), // QUAN TRỌNG
                 new Claim(ClaimTypes.Name, employee.Name),
                 new Claim(ClaimTypes.Email, employee.Email),
                 new Claim(ClaimTypes.Role, employee.Role.ToString())

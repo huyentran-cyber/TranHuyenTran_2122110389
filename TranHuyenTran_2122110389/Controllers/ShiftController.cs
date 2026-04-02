@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.Models;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ShiftController : ControllerBase

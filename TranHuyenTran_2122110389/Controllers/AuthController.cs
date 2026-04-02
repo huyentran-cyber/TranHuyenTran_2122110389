@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.DTOs;
-using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
@@ -9,42 +8,22 @@ namespace TranHuyenTran_2122110389.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(AppDbContext context)
+        public AuthController(IAuthService authService)
         {
-            _context = context;
-        }
-
-        [HttpPost("register")]
-        public IActionResult Register(RegisterDTO dto)
-        {
-            var employee = new Employee
-            {
-                Name = dto.Name,
-                Email = dto.Email,
-                Phone = dto.Phone,
-                Password = dto.Password,
-                PositionId = dto.PositionId,
-                Role = Enum.Parse<Role>(dto.Role ?? "Staff")
-            };
-
-            _context.Employees.Add(employee);
-            _context.SaveChanges();
-
-            return Ok("Register success");
+            _authService = authService;
         }
 
         [HttpPost("login")]
         public IActionResult Login(LoginDTO dto)
         {
-            var user = _context.Employees
-                .FirstOrDefault(x => x.Email == dto.Email && x.Password == dto.Password);
+            var result = _authService.Login(dto);
 
-            if (user == null)
+            if (result == null)
                 return Unauthorized("Invalid account");
 
-            return Ok(user);
+            return Ok(result);
         }
     }
 }
