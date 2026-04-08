@@ -97,6 +97,7 @@ namespace TranHuyenTran_2122110389.Controllers
                 Name = dto.Name,
                 Email = dto.Email,
                 Phone = dto.Phone,
+                Password = dto.Password,
                 PositionId = dto.PositionId,
                 Role = RoleHelper.ParseRole(dto.Role)
             };

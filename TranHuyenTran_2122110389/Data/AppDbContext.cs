@@ -29,19 +29,12 @@ namespace TranHuyenTran_2122110389.Data
                 new Position
                 {
                     Id = 1,
-                    Name = "Admin",
+                    Name = "Quản lý",
                     HourlyRate = 0,
                     MinStaff = 1,
                     MaxShiftPerDay = 1
-                },
-                new Position
-                {
-                    Id = 2,
-                    Name = "Staff",
-                    HourlyRate = 100,
-                    MinStaff = 1,
-                    MaxShiftPerDay = 2
                 }
+                
             );
 
             // 🔥 Seed Admin

@@ -12,8 +12,8 @@ using TranHuyenTran_2122110389.Data;
 namespace TranHuyenTran_2122110389.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260402025321_SeedAdmin")]
-    partial class SeedAdmin
+    [Migration("20260408173418_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,7 +120,7 @@ namespace TranHuyenTran_2122110389.Migrations
                             Id = 1,
                             Email = "admin@gmail.com",
                             Name = "Admin",
-                            Password = "$2a$11$w3xYVLpMugYIHz.O9kkjzumflalptf4xDnf3UcUp1fK3QP7qILw5i",
+                            Password = "$2a$11$wFIFn/1B5TAnrglwvpluveacr7mfbbjEzQe/lydLA3e0kXTT7ri2i",
                             Phone = "0000000000",
                             PositionId = 1,
                             Role = 0
@@ -159,15 +159,7 @@ namespace TranHuyenTran_2122110389.Migrations
                             HourlyRate = 0m,
                             MaxShiftPerDay = 1,
                             MinStaff = 1,
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            HourlyRate = 100m,
-                            MaxShiftPerDay = 2,
-                            MinStaff = 1,
-                            Name = "Staff"
+                            Name = "Quản lý"
                         });
                 });
 
@@ -237,14 +229,14 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
                     b.Property<int>("ShiftId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("WorkDate")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

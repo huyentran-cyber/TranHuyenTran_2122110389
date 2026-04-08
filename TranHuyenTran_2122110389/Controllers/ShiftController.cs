@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.DTOs; 
 
 namespace TranHuyenTran_2122110389.Controllers
 {
@@ -11,25 +12,33 @@ namespace TranHuyenTran_2122110389.Controllers
     public class ShiftController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public ShiftController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public ShiftController(AppDbContext context) => _context = context;
 
         [HttpGet]
-        public IActionResult GetAll()
-        {
-            return Ok(_context.Shifts);
-        }
+        public IActionResult GetAll() => Ok(_context.Shifts.ToList());
 
         [HttpPost]
-        public IActionResult Create(Shift model)
+        public IActionResult Create(ShiftDTO dto) // Dùng DTO ở đây
         {
-            _context.Shifts.Add(model);
-            _context.SaveChanges();
+            try
+            {
+                var shift = new Shift
+                {
+                    Name = dto.Name,
+                    // Ép kiểu từ string (Frontend) sang TimeSpan (Backend)
+                    StartTime = TimeSpan.Parse(dto.StartTime),
+                    EndTime = TimeSpan.Parse(dto.EndTime)
+                };
 
-            return Ok(model);
+                _context.Shifts.Add(shift);
+                _context.SaveChanges();
+
+                return Ok(shift);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Định dạng thời gian không hợp lệ. Vui lòng dùng HH:mm:ss");
+            }
         }
     }
 }

@@ -1,87 +1,45 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TranHuyenTran_2122110389.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.DTOs;
-using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
-    //[Route("api/[controller]")]
-    //[ApiController]
-    //public class WorkScheduleController : ControllerBase
-    //{
-    //    private readonly AppDbContext _context;
-
-    //    public WorkScheduleController(AppDbContext context)
-    //    {
-    //        _context = context;
-    //    }
-
-    //    [HttpGet]
-    //    public IActionResult GetAll()
-    //    {
-    //        return Ok(_context.WorkSchedules
-    //            .Include(x => x.Employee)
-    //            .Include(x => x.Shift));
-    //    }
-
-    //    [HttpPost]
-    //    public IActionResult Create(WorkSchedule model)
-    //    {
-    //        _context.WorkSchedules.Add(model);
-    //        _context.SaveChanges();
-
-    //        return Ok(model);
-    //    }
-    //}
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WorkScheduleController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IShiftService _shiftService;
+        private readonly IEmployeeService _employeeService;
 
-        public WorkScheduleController(AppDbContext context)
+        public WorkScheduleController(IShiftService shiftService, IEmployeeService employeeService)
         {
-            _context = context;
+            _shiftService = shiftService;
+            _employeeService = employeeService;
         }
 
-        [HttpGet]
-        public IActionResult GetAll()
+        [HttpPost("register")]
+        public IActionResult RegisterShift([FromBody] WorkScheduleDTO dto)
         {
-            return Ok(_context.WorkSchedules
-                .Include(x => x.Employee)
-                .Include(x => x.Shift));
-        }
+            var employee = _employeeService.GetById(dto.EmployeeId);
+            if (employee == null) return NotFound("Nhân viên không tồn tại.");
 
-        [HttpPost]
-        public IActionResult Create(WorkScheduleDTO dto)
-        {
-            var count = _context.WorkSchedules
-                .Count(x => x.EmployeeId == dto.EmployeeId && x.WorkDate.Date == dto.WorkDate.Date);
+            // LOGIC NGHIỆP VỤ: Kiểm tra số ca tối đa theo vị trí
+            int currentShifts = _shiftService.GetShiftCountByDate(dto.EmployeeId, dto.Date);
+            int maxAllowed = employee.Position.MaxShiftPerDay; // Phục vụ: 2, Pha chế: 1
 
-            var position = _context.Employees
-                .Include(x => x.Position)
-                .FirstOrDefault(x => x.Id == dto.EmployeeId)?.Position;
-
-            if (position == null)
-                return BadRequest("Position not found");
-
-            if (count >= position.MaxShiftPerDay)
-                return BadRequest("Exceed max shift per day");
-
-            var ws = new WorkSchedule
+            if (currentShifts >= maxAllowed)
             {
-                EmployeeId = dto.EmployeeId,
-                ShiftId = dto.ShiftId,
-                WorkDate = dto.WorkDate
-            };
+                return BadRequest($"Lỗi: Bộ phận {employee.Position.Name} chỉ được đăng ký tối đa {maxAllowed} ca/ngày.");
+            }
 
-            _context.WorkSchedules.Add(ws);
-            _context.SaveChanges();
+            var result = _shiftService.Register(dto);
+            return Ok(result);
+        }
 
-            return Ok(ws);
+        [HttpGet("my-schedule/{employeeId}")]
+        public IActionResult GetMySchedule(int employeeId)
+        {
+            return Ok(_shiftService.GetByEmployeeId(employeeId));
         }
     }
 }

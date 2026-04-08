@@ -1,4 +1,5 @@
-﻿using TranHuyenTran_2122110389.Models;
+﻿using TranHuyenTran_2122110389.DTOs;
+using TranHuyenTran_2122110389.Models;
 
 namespace TranHuyenTran_2122110389.Services.Interfaces
 {
@@ -6,5 +7,11 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
     {
         IEnumerable<Shift> GetAll();
         Shift Create(Shift model);
+
+
+        // BỔ SUNG CÁC HÀM SAU ĐỂ HẾT LỖI GẠCH ĐỎ
+        int GetShiftCountByDate(int employeeId, DateTime date);
+        WorkSchedule Register(WorkScheduleDTO dto);
+        IEnumerable<WorkSchedule> GetByEmployeeId(int employeeId);
     }
 }

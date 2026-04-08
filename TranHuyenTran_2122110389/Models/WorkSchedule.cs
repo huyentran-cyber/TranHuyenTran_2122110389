@@ -12,6 +12,6 @@
 
         public Shift? Shift { get; set; }
 
-        public DateTime WorkDate { get; set; }
+        public DateTime Date { get; set; }
     }
 }

@@ -8,6 +8,6 @@
 
         public int ShiftId { get; set; }
 
-        public DateTime WorkDate { get; set; }
+        public DateTime Date { get; set; }
     }
 }
