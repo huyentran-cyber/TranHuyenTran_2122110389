@@ -1,17 +1,27 @@
-﻿namespace TranHuyenTran_2122110389.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace TranHuyenTran_2122110389.Models
 {
     public class WorkSchedule
     {
+        [Key]
         public int Id { get; set; }
 
         public int EmployeeId { get; set; }
-
+        [ForeignKey("EmployeeId")]
         public Employee? Employee { get; set; }
 
         public int ShiftId { get; set; }
-
+        [ForeignKey("ShiftId")]
         public Shift? Shift { get; set; }
 
-        public DateTime Date { get; set; }
+        [Required]
+        public DateTime WorkDate { get; set; }
+
+        [Required]
+        public string Status { get; set; } = "Pending";
+
+        public virtual ICollection<Attendance>? Attendances { get; set; }
     }
 }

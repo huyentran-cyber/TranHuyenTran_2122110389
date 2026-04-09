@@ -5,13 +5,8 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
 {
     public interface IShiftService
     {
-        IEnumerable<Shift> GetAll();
-        Shift Create(Shift model);
-
-
-        // BỔ SUNG CÁC HÀM SAU ĐỂ HẾT LỖI GẠCH ĐỎ
-        int GetShiftCountByDate(int employeeId, DateTime date);
-        WorkSchedule Register(WorkScheduleDTO dto);
-        IEnumerable<WorkSchedule> GetByEmployeeId(int employeeId);
+        Task<IEnumerable<Shift>> GetAllAsync();
+        Task<Shift> CreateAsync(Shift shift);
+        Task<Shift> GetByIdAsync(int id);
     }
 }

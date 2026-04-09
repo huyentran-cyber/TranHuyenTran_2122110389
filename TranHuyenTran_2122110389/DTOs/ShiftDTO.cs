@@ -9,5 +9,6 @@
         public String StartTime { get; set; }
 
         public String EndTime { get; set; }
+        public string? DeptType { get; set; }
     }
 }

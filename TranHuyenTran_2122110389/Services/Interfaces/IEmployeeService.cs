@@ -5,10 +5,10 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
 {
     public interface IEmployeeService
     {
-        IEnumerable<Employee> GetAll();
-        Employee GetById(int id);
-        Employee Create(EmployeeDTO dto);
-        Employee Update(int id, EmployeeDTO dto);
-        bool Delete(int id);
+        Task<IEnumerable<Employee>> GetAllAsync();
+        Task<Employee> GetByIdAsync(int id);
+        Task<Employee> CreateAsync(EmployeeDTO dto);
+        Task<Employee> UpdateAsync(int id, EmployeeDTO dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

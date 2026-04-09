@@ -8,38 +8,53 @@ namespace TranHuyenTran_2122110389.Controllers
     [ApiController]
     public class WorkScheduleController : ControllerBase
     {
-        private readonly IShiftService _shiftService;
         private readonly IEmployeeService _employeeService;
+        private readonly IWorkScheduleService _scheduleService;
 
-        public WorkScheduleController(IShiftService shiftService, IEmployeeService employeeService)
+        public WorkScheduleController(IWorkScheduleService scheduleService, IEmployeeService employeeService)
         {
-            _shiftService = shiftService;
+            _scheduleService = scheduleService;
             _employeeService = employeeService;
         }
 
         [HttpPost("register")]
-        public IActionResult RegisterShift([FromBody] WorkScheduleDTO dto)
+        public async Task<IActionResult> RegisterShift([FromBody] WorkScheduleDTO dto)
         {
-            var employee = _employeeService.GetById(dto.EmployeeId);
+            var employee = await _employeeService.GetByIdAsync(dto.EmployeeId);
             if (employee == null) return NotFound("Nhân viên không tồn tại.");
 
-            // LOGIC NGHIỆP VỤ: Kiểm tra số ca tối đa theo vị trí
-            int currentShifts = _shiftService.GetShiftCountByDate(dto.EmployeeId, dto.Date);
-            int maxAllowed = employee.Position.MaxShiftPerDay; // Phục vụ: 2, Pha chế: 1
-
-            if (currentShifts >= maxAllowed)
+            try
             {
-                return BadRequest($"Lỗi: Bộ phận {employee.Position.Name} chỉ được đăng ký tối đa {maxAllowed} ca/ngày.");
-            }
+                // 2. Gọi Service xử lý đăng ký
+                // Service này sẽ tự kiểm tra: Position, MaxShiftPerDay, và Trùng giờ ca làm.
+                var result = await _scheduleService.RegisterAsync(dto.EmployeeId, dto.ShiftId, dto.WorkDate);
 
-            var result = _shiftService.Register(dto);
-            return Ok(result);
+                // 3. Trả về dữ liệu sạch cho Client
+                return Ok(new
+                {
+                    Message = "Đăng ký ca làm thành công",
+                    Data = new
+                    {
+                        result.Id,
+                        result.EmployeeId,
+                        result.ShiftId,
+                        Date = result.WorkDate.ToString("dd/MM/yyyy"),
+                        result.Status
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Mọi vi phạm quy tắc chặn (Validation) sẽ được ném ra và catch tại đây
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("my-schedule/{employeeId}")]
-        public IActionResult GetMySchedule(int employeeId)
+        public async Task<IActionResult> GetMySchedule(int employeeId)
         {
-            return Ok(_shiftService.GetByEmployeeId(employeeId));
+            var schedules = await _scheduleService.GetMySchedulesAsync(employeeId);
+            return Ok(schedules);
         }
     }
 }

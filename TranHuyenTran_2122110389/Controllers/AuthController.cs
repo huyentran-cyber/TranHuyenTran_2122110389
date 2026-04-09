@@ -21,7 +21,14 @@ namespace TranHuyenTran_2122110389.Controllers
             var result = _authService.Login(dto);
 
             if (result == null)
-                return Unauthorized("Invalid account");
+                return Unauthorized(new { message = "Sai email hoặc mật khẩu" });
+
+            // Kiểm tra nếu result là object chứa message lỗi(tài khoản bị khóa)
+            var resultType = result.GetType();
+            if (resultType.GetProperty("message") != null && resultType.GetProperty("token") == null)
+            {
+                return StatusCode(403, result); // 403 Forbidden cho tài khoản bị khóa
+            }
 
             return Ok(result);
         }

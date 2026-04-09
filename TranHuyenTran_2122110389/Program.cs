@@ -20,6 +20,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
+builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+builder.Services.AddScoped<ISalaryService, SalaryService>();
+builder.Services.AddScoped<IPositionService, PositionService>();
 
 // 3. Cấu hình Authentication & JWT
 var jwtConfig = builder.Configuration.GetSection("Jwt");
@@ -45,7 +49,21 @@ builder.Services.AddAuthentication(options =>
 });
 
 // 4. Cấu hình Swagger để hiện nút Authorize (Ổ khóa)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+  {
+        // 1. Xử lý lỗi vòng lặp (Thay thế cho IgnoreCycles)
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+
+        // 2. ĐỊNH DẠNG NGÀY THÁNG chuẩn yyyy-MM-dd
+        options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
+
+        // 3. Bỏ qua các trường NULL (Thay thế cho DefaultIgnoreCondition)
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+
+
+
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -88,8 +106,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // Bắt buộc nằm TRƯỚC Authorization
-app.UseAuthorization();
+app.UseAuthentication(); // Giải mã token
+app.UseAuthorization(); //ktra quyền
 
 app.MapControllers();
 

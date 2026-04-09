@@ -14,41 +14,18 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         private readonly AppDbContext _context;
         public ShiftService(AppDbContext context) => _context = context;
 
-        public IEnumerable<Shift> GetAll() => _context.Shifts.ToList();
+        public async Task<IEnumerable<Shift>> GetAllAsync()
+            => await _context.Shifts.ToListAsync();
 
-        public Shift Create(Shift model)
+        public async Task<Shift> GetByIdAsync(int id)
+            => await _context.Shifts.FindAsync(id);
+
+        public async Task<Shift> CreateAsync(Shift model)
         {
             _context.Shifts.Add(model);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return model;
         }
 
-        // THỰC THI CÁC HÀM MỚI
-        public int GetShiftCountByDate(int employeeId, DateTime date)
-        {
-            return _context.WorkSchedules
-                .Count(ws => ws.EmployeeId == employeeId && ws.Date.Date == date.Date);
-        }
-
-        public WorkSchedule Register(WorkScheduleDTO dto)
-        {
-            var schedule = new WorkSchedule
-            {
-                EmployeeId = dto.EmployeeId,
-                ShiftId = dto.ShiftId,
-                Date = dto.Date
-            };
-            _context.WorkSchedules.Add(schedule);
-            _context.SaveChanges();
-            return schedule;
-        }
-
-        public IEnumerable<WorkSchedule> GetByEmployeeId(int employeeId)
-        {
-            return _context.WorkSchedules
-                .Where(ws => ws.EmployeeId == employeeId)
-                .Include(ws => ws.Shift)
-                .ToList();
-        }
     }
 }

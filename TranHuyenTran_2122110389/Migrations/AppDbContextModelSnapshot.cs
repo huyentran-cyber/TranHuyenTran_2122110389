@@ -22,32 +22,6 @@ namespace TranHuyenTran_2122110389.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ConnectDB.Models.Student", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Birthday")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("StudentCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Students");
-                });
-
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Attendance", b =>
                 {
                     b.Property<int>("Id")
@@ -65,12 +39,26 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsEarly")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ScheduleId");
 
                     b.ToTable("Attendances");
                 });
@@ -87,9 +75,15 @@ namespace TranHuyenTran_2122110389.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -97,7 +91,8 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<int>("PositionId")
                         .HasColumnType("int");
@@ -116,12 +111,45 @@ namespace TranHuyenTran_2122110389.Migrations
                         {
                             Id = 1,
                             Email = "admin@gmail.com",
+                            IsActive = true,
                             Name = "Admin",
-                            Password = "$2a$11$wFIFn/1B5TAnrglwvpluveacr7mfbbjEzQe/lydLA3e0kXTT7ri2i",
-                            Phone = "0000000000",
+                            Password = "$2a$11$cKSkJozZDgiUzhkPL6CJeODJXrHDXPYQ1Ntc1lHTBkimTHOqmRRwC",
+                            Phone = "0912345678",
                             PositionId = 1,
                             Role = 0
                         });
+                });
+
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.LeaveRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsEmergency")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("OffDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("LeaveRequests");
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Position", b =>
@@ -143,7 +171,8 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -153,14 +182,14 @@ namespace TranHuyenTran_2122110389.Migrations
                         new
                         {
                             Id = 1,
-                            HourlyRate = 0m,
+                            HourlyRate = 50000m,
                             MaxShiftPerDay = 1,
                             MinStaff = 1,
                             Name = "Quản lý"
                         });
                 });
 
-            modelBuilder.Entity("TranHuyenTran_2122110389.Models.Product", b =>
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.Salary", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -168,31 +197,38 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime>("CalculatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal>("Price")
+                    b.Property<decimal>("HourlyRateAtTime")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Quantity")
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PenaltyAbsent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PenaltyViolation")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("Salaries");
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Shift", b =>
@@ -203,12 +239,18 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("DeptType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -226,14 +268,18 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
                     b.Property<int>("ShiftId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("WorkDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -249,10 +295,17 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.HasOne("TranHuyenTran_2122110389.Models.Employee", "Employee")
                         .WithMany("Attendances")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TranHuyenTran_2122110389.Models.WorkSchedule", "WorkSchedule")
+                        .WithMany("Attendances")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Employee");
+
+                    b.Navigation("WorkSchedule");
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Employee", b =>
@@ -264,6 +317,28 @@ namespace TranHuyenTran_2122110389.Migrations
                         .IsRequired();
 
                     b.Navigation("Position");
+                });
+
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.LeaveRequest", b =>
+                {
+                    b.HasOne("TranHuyenTran_2122110389.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.Salary", b =>
+                {
+                    b.HasOne("TranHuyenTran_2122110389.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.WorkSchedule", b =>
@@ -300,6 +375,11 @@ namespace TranHuyenTran_2122110389.Migrations
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Shift", b =>
                 {
                     b.Navigation("WorkSchedules");
+                });
+
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.WorkSchedule", b =>
+                {
+                    b.Navigation("Attendances");
                 });
 #pragma warning restore 612, 618
         }

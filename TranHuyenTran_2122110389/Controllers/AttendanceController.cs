@@ -19,34 +19,39 @@ namespace TranHuyenTran_2122110389.Controllers
 
         private int GetUserId()
         {
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 0;
         }
 
         [HttpPost("checkin")]
-        public IActionResult CheckIn()
+        public async Task<IActionResult> CheckIn()
         {
             try
             {
                 var userId = GetUserId();
-                return Ok(_service.CheckIn(userId));
+                // Service sẽ tự tìm ca làm việc (WorkSchedule) hiện tại của nhân viên để Check-in
+                var result = await _service.CheckInAsync(userId);
+                return Ok(new { message = "Check-in thành công", data = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Trả về lỗi nghiệp vụ (Vd: "Bạn không có lịch làm việc trong ca này")
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPost("checkout")]
-        public IActionResult CheckOut()
+        public async Task<IActionResult> CheckOut()
         {
             try
             {
                 var userId = GetUserId();
-                return Ok(_service.CheckOut(userId));
+                var result = await _service.CheckOutAsync(userId);
+                return Ok(new { message = "Check-out thành công", data = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

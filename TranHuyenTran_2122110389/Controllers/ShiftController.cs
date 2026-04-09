@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.Data;
-using TranHuyenTran_2122110389.Models;
 using TranHuyenTran_2122110389.DTOs; 
+using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
@@ -11,33 +12,32 @@ namespace TranHuyenTran_2122110389.Controllers
     [ApiController]
     public class ShiftController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public ShiftController(AppDbContext context) => _context = context;
+        private readonly IShiftService _service;
+        public ShiftController(IShiftService service) => _service = service;
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_context.Shifts.ToList());
+        public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
         [HttpPost]
-        public IActionResult Create(ShiftDTO dto) // Dùng DTO ở đây
+        public async Task<IActionResult> Create([FromBody] ShiftDTO dto)
         {
             try
             {
                 var shift = new Shift
                 {
                     Name = dto.Name,
-                    // Ép kiểu từ string (Frontend) sang TimeSpan (Backend)
+                    // Chuyển string "HH:mm" từ Frontend sang TimeSpan
                     StartTime = TimeSpan.Parse(dto.StartTime),
-                    EndTime = TimeSpan.Parse(dto.EndTime)
+                    EndTime = TimeSpan.Parse(dto.EndTime),
+                    DeptType = dto.DeptType ?? "All"
                 };
 
-                _context.Shifts.Add(shift);
-                _context.SaveChanges();
-
-                return Ok(shift);
+                var result = await _service.CreateAsync(shift);
+                return Ok(result);
             }
-            catch (Exception ex)
+            catch (FormatException)
             {
-                return BadRequest("Định dạng thời gian không hợp lệ. Vui lòng dùng HH:mm:ss");
+                return BadRequest("Định dạng thời gian không hợp lệ (HH:mm:ss).");
             }
         }
     }

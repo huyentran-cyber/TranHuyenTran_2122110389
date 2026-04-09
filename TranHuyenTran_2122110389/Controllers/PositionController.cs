@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
@@ -11,80 +12,54 @@ namespace TranHuyenTran_2122110389.Controllers
     [ApiController]
     public class PositionController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPositionService _service;
 
-        public PositionController(AppDbContext context)
+        public PositionController(IPositionService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET ALL
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var data = _context.Positions.Select(x => new PositionDTO
-            {
-                Id = x.Id,
-                Name = x.Name,
-                HourlyRate = x.HourlyRate,
-                MinStaff = x.MinStaff,
-                MaxShiftPerDay = x.MaxShiftPerDay
-            });
-
-            return Ok(data);
+            return Ok(await _service.GetAllAsync());
         }
 
         // CREATE
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Manager")]
         [HttpPost]
-        public IActionResult Create(PositionDTO dto)
+        public async Task<IActionResult> Create( [FromBody] PositionDTO dto)
         {
-            var position = new Position
-            {
-                Name = dto.Name,
-                HourlyRate = dto.HourlyRate,
-                MinStaff = dto.MinStaff,
-                MaxShiftPerDay = dto.MaxShiftPerDay
-            };
-
-            _context.Positions.Add(position);
-            _context.SaveChanges();
-
-            return Ok(position);
+            var result = await _service.CreateAsync(dto);
+            return Ok(result);
         }
 
         // UPDATE
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
-        public IActionResult Update(int id, PositionDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] PositionDTO dto)
         {
-            var data = _context.Positions.Find(id);
-
-            if (data == null)
-                return NotFound();
-
-            data.Name = dto.Name;
-            data.HourlyRate = dto.HourlyRate;
-            data.MinStaff = dto.MinStaff;
-            data.MaxShiftPerDay = dto.MaxShiftPerDay;
-
-            _context.SaveChanges();
-
-            return Ok(data);
+            var result = await _service.UpdateAsync(id, dto);
+            if (result == null) return NotFound();
+            return Ok(result);
         }
 
         // DELETE
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var data = _context.Positions.Find(id);
-
-            if (data == null)
-                return NotFound();
-
-            _context.Positions.Remove(data);
-            _context.SaveChanges();
-
-            return Ok("Deleted successfully");
+            try
+            {
+                var success = await _service.DeleteAsync(id);
+                if (!success) return NotFound();
+                return Ok(new { message = "Xóa thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

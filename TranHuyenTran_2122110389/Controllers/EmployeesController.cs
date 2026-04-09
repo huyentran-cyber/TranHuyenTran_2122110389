@@ -5,135 +5,60 @@ using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Helpers;
 using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
 {
-    //[Route("api/[controller]")]
-    //[ApiController]
-    //public class EmployeeController : ControllerBase
-    //{
-    //    private readonly AppDbContext _context;
-
-    //    public EmployeeController(AppDbContext context)
-    //    {
-    //        _context = context;
-    //    }
-
-    //    [HttpGet]
-    //    public IActionResult GetAll()
-    //    {
-    //        return Ok(_context.Employees.Include(x => x.Position));
-    //    }
-
-    //    [HttpGet("{id}")]
-    //    public IActionResult Get(int id)
-    //    {
-    //        var data = _context.Employees.Find(id);
-    //        return Ok(data);
-    //    }
-
-    //    [HttpPost]
-    //    public IActionResult Create(Employee model)
-    //    {
-    //        _context.Employees.Add(model);
-    //        _context.SaveChanges();
-    //        return Ok(model);
-    //    }
-
-    //    [HttpPut("{id}")]
-    //    public IActionResult Update(int id, Employee model)
-    //    {
-    //        var data = _context.Employees.Find(id);
-
-    //        if (data == null)
-    //            return NotFound();
-
-    //        data.Name = model.Name;
-    //        data.Email = model.Email;
-    //        data.Phone = model.Phone;
-
-    //        _context.SaveChanges();
-
-    //        return Ok(data);
-    //    }
-
-    //    [HttpDelete("{id}")]
-    //    public IActionResult Delete(int id)
-    //    {
-    //        var data = _context.Employees.Find(id);
-
-    //        if (data == null)
-    //            return NotFound();
-
-    //        _context.Employees.Remove(data);
-    //        _context.SaveChanges();
-
-    //        return Ok();
-    //    }
-    //}
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IEmployeeService _service;
 
-        public EmployeeController(AppDbContext context)
+        public EmployeeController(IEmployeeService service)
         {
-            _context = context;
+            _service = service;
         }
 
+        // Lấy danh sách nhân viên kèm thông tin Vị trí
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            return Ok(_context.Employees.Include(x => x.Position));
+            var employees = await _service.GetAllAsync();
+            return Ok(employees);
         }
 
+        // Tạo nhân viên mới
         [HttpPost]
-        public IActionResult Create(EmployeeDTO dto)
+        public async Task<IActionResult> Create([FromBody] EmployeeDTO dto)
         {
-            var emp = new Employee
+            try
             {
-                Name = dto.Name,
-                Email = dto.Email,
-                Phone = dto.Phone,
-                Password = dto.Password,
-                PositionId = dto.PositionId,
-                Role = RoleHelper.ParseRole(dto.Role)
-            };
-
-            _context.Employees.Add(emp);
-            _context.SaveChanges();
-
-            return Ok(emp);
+                var result = await _service.CreateAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, EmployeeDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody]  EmployeeDTO dto)
         {
-            var emp = _context.Employees.Find(id);
-            if (emp == null) return NotFound();
-
-            emp.Name = dto.Name;
-            emp.Email = dto.Email;
-            emp.Phone = dto.Phone;
-
-            _context.SaveChanges();
-
-            return Ok(emp);
+            var result = await _service.UpdateAsync(id, dto);
+            if (result == null) return NotFound("Không tìm thấy nhân viên");
+            return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var emp = _context.Employees.Find(id);
-            if (emp == null) return NotFound();
-
-            _context.Employees.Remove(emp);
-            _context.SaveChanges();
-
-            return Ok();
+            var success = await _service.DeleteAsync(id);
+            if (!success) return NotFound();
+            return Ok(new { message = "Xóa thành công" });
         }
     }
 }
