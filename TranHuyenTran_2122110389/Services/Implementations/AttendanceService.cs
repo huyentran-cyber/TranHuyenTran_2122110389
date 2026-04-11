@@ -10,6 +10,24 @@ namespace TranHuyenTran_2122110389.Services.Implementations
     {
         private readonly AppDbContext _context;
 
+        private string FormatDuration(int totalMinutes)
+        {
+            if (totalMinutes < 60)
+            {
+                return $"{totalMinutes}m"; // Kết quả ví dụ: 45p
+            }
+
+            int hours = totalMinutes / 60;
+            int mins = totalMinutes % 60;
+
+            // Nếu có phút lẻ thì hiện cả tiếng cả phút, nếu không thì chỉ hiện tiếng
+            if (mins > 0)
+            {
+                return $"{hours}h {mins}m"; 
+            }
+            return $"{hours}h"; 
+        }
+
         public AttendanceService(AppDbContext context)
         {
             _context = context;
@@ -48,7 +66,18 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             var exists = await _context.Attendances.AnyAsync(a => a.ScheduleId == schedule.Id);
             if (exists) throw new Exception("Bạn đã điểm danh vào ca này rồi.");
 
-            bool isLate = now.TimeOfDay > schedule.Shift.StartTime.Add(TimeSpan.FromMinutes(5));
+            // --- LOGIC TÍNH PHÚT ĐI MUỘN ---
+            var shiftStart = schedule.Shift.StartTime;
+            var currentTime = now.TimeOfDay;
+            bool isLate = currentTime > shiftStart.Add(TimeSpan.FromMinutes(5));
+
+            string statusText = "Present";
+            if (isLate)
+            {
+                // Tính số phút đi muộn
+                int lateMinutes = (int)(currentTime - shiftStart).TotalMinutes;
+                statusText = $"Late ({FormatDuration(lateMinutes)})";
+            }
 
             var attendance = new Attendance
             {
@@ -57,7 +86,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 CheckIn = now,
                 IsLate = isLate,
                 IsEarly = false,
-                Status = isLate ? "Late" : "Present"
+                Status = statusText
             };
 
             _context.Attendances.Add(attendance);
@@ -75,20 +104,37 @@ namespace TranHuyenTran_2122110389.Services.Implementations
 
         public async Task<AttendanceDTO> CheckOutAsync(int employeeId)
         {
+            // Tìm bản ghi check-in mới nhất hôm nay mà chưa có check-out
             var attendance = await _context.Attendances
                 .Include(a => a.WorkSchedule).ThenInclude(s => s.Shift)
+                .Where(a => a.EmployeeId == employeeId && a.CheckOut == null)
                 .OrderByDescending(a => a.CheckIn)
-                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.CheckOut == null);
+                .FirstOrDefaultAsync();
 
             if (attendance == null)
                 throw new Exception("Không tìm thấy dữ liệu Check-in để thực hiện Check-out.");
 
             var now = DateTime.Now;
+            var shiftEnd = attendance.WorkSchedule.Shift.EndTime;
+            var currentTime = now.TimeOfDay;
 
-            if (now.TimeOfDay < attendance.WorkSchedule.Shift.EndTime)
+            // --- LOGIC TÍNH PHÚT VỀ SỚM ---
+            if (currentTime < shiftEnd)
             {
                 attendance.IsEarly = true;
-                attendance.Status = "Early Leave"; // Cập nhật lại status nếu về sớm
+                int earlyMinutes = (int)(shiftEnd - currentTime).TotalMinutes;
+
+                // Nếu đã đi muộn thì nối thêm chuỗi, nếu không thì ghi mới
+                string earlyText = $"Early ({FormatDuration(earlyMinutes)})";
+
+                if (attendance.IsLate)
+                    attendance.Status += $" & {earlyText}";
+                else
+                    attendance.Status = earlyText;
+            }
+            else if (string.IsNullOrEmpty(attendance.Status) || !attendance.IsLate)
+            {
+                attendance.Status = "Present";
             }
 
             attendance.CheckOut = now;

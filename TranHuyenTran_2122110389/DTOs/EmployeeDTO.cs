@@ -1,4 +1,7 @@
-﻿namespace TranHuyenTran_2122110389.DTOs
+﻿
+
+
+namespace TranHuyenTran_2122110389.DTOs
 {
     public class EmployeeDTO
     {
@@ -10,7 +13,7 @@
 
         public string? Email { get; set; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public int PositionId { get; set; }
 

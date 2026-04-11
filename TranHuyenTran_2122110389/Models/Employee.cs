@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace TranHuyenTran_2122110389.Models
 {
@@ -30,8 +31,9 @@ namespace TranHuyenTran_2122110389.Models
         [ForeignKey("PositionId")]
         public Position? Position { get; set; }
 
+        [JsonIgnore]
         public ICollection<WorkSchedule>? WorkSchedules { get; set; }
-
+        [JsonIgnore]
         public ICollection<Attendance>? Attendances { get; set; }
 
         public bool IsActive { get; set; } = true;

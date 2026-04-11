@@ -17,12 +17,30 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         }
 
         // Chỉ lấy nhân viên đang hoạt động (IsActive = true)
-        public async Task<IEnumerable<Employee>> GetAllAsync()
+        public async Task<IEnumerable<Employee>> GetAllAsync(int? month = null, int? year = null, string status = "all")
         {
-            return await _context.Employees
+            var query = _context.Employees
             .Include(x => x.Position)
-            .Where(x => x.IsActive == true)
-            .ToListAsync();
+            .Include(x => x.WorkSchedules)
+                .ThenInclude(ws => ws.Shift)
+        // Sử dụng Filtered Include để chỉ lấy điểm danh đúng tháng/năm yêu cầu
+        .Include(x => x.Attendances.Where(a =>
+            (!month.HasValue || a.CheckIn.Month == month) &&
+            (!year.HasValue || a.CheckIn.Year == year)))
+        .AsQueryable();
+
+            // Logic lọc theo trạng thái (status từ frontend gửi lên: all, active, inactive)
+            if (status == "active")
+            {
+                query = query.Where(x => x.IsActive == true);
+            }
+            else if (status == "inactive")
+            {
+                query = query.Where(x => x.IsActive == false);
+            }
+            // Nếu status == "all", không lọc IsActive để hiển thị cả người cũ và mới
+
+            return await query.ToListAsync();
         }
 
         public async Task<Employee> GetByIdAsync(int id)
@@ -67,6 +85,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             emp.PositionId = dto.PositionId;
             emp.IsActive = dto.IsActive;
 
+
             // Nếu người dùng nhập mật khẩu mới thì mới Hash lại
             if (!string.IsNullOrEmpty(dto.Password))
             {
@@ -82,8 +101,6 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             var emp = await _context.Employees.FindAsync(id);
             if (emp == null) return false;
 
-            // Thay vì _context.Employees.Remove(emp);
-            // Chúng ta chuyển trạng thái hoạt động về false
             emp.IsActive = false;
             await _context.SaveChangesAsync();
             return true;

@@ -52,18 +52,18 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
   {
-        // 1. Xử lý lỗi vòng lặp (Thay thế cho IgnoreCycles)
-        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+      // 1. Bỏ qua vòng lặp tham chiếu
+      options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 
-        // 2. ĐỊNH DẠNG NGÀY THÁNG chuẩn yyyy-MM-dd
-        options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
+      // 2. Ép kiểu JSON thuần (Quan trọng: Ngăn chặn việc lặp lại metadata)
+      options.SerializerSettings.PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.None;
 
-        // 3. Bỏ qua các trường NULL (Thay thế cho DefaultIgnoreCondition)
-        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+      // 3. Bỏ qua các trường NULL
+      options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
 
 
 
-    });
+  });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,6 +95,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAll", policy => {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // 5. Cấu hình Middleware
@@ -105,6 +111,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication(); // Giải mã token
 app.UseAuthorization(); //ktra quyền

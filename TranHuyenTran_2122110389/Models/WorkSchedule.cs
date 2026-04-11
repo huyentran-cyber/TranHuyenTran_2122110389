@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace TranHuyenTran_2122110389.Models
 {
@@ -21,7 +22,7 @@ namespace TranHuyenTran_2122110389.Models
 
         [Required]
         public string Status { get; set; } = "Pending";
-
+        [JsonIgnore]
         public virtual ICollection<Attendance>? Attendances { get; set; }
     }
 }

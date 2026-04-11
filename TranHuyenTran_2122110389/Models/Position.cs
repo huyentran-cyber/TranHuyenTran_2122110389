@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace TranHuyenTran_2122110389.Models
 {
@@ -19,6 +19,7 @@ namespace TranHuyenTran_2122110389.Models
 
         public int MaxShiftPerDay { get; set; }
 
+        [JsonIgnore]
         public ICollection<Employee>? Employees { get; set; }
     }
 }

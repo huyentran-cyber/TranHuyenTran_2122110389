@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace TranHuyenTran_2122110389.Models
 {
@@ -20,7 +21,7 @@ namespace TranHuyenTran_2122110389.Models
         [Required]
         [StringLength(50)]
         public string DeptType { get; set; }
-
+        [JsonIgnore]
         public ICollection<WorkSchedule>? WorkSchedules { get; set; }
     }
 }

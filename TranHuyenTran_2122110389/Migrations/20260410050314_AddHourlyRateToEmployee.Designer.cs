@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TranHuyenTran_2122110389.Data;
 
@@ -11,9 +12,11 @@ using TranHuyenTran_2122110389.Data;
 namespace TranHuyenTran_2122110389.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260410050314_AddHourlyRateToEmployee")]
+    partial class AddHourlyRateToEmployee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,6 +78,9 @@ namespace TranHuyenTran_2122110389.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("HourlyRate")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -111,9 +117,10 @@ namespace TranHuyenTran_2122110389.Migrations
                         {
                             Id = 1,
                             Email = "admin@gmail.com",
+                            HourlyRate = 0m,
                             IsActive = true,
                             Name = "Admin",
-                            Password = "$2a$11$iPtWKjfNwq3PV.dzDDfzW.f78gtKLKuOW.jhzPaXDYecq9Vlr7rI.",
+                            Password = "$2a$11$8.8giRVEnNInv2OGXMKDFePVUhvkv5jXjIPVc6YQodw/roadNaSH.",
                             Phone = "0912345678",
                             PositionId = 1,
                             Role = 0
