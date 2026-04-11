@@ -79,13 +79,20 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             var emp = await _context.Employees.FindAsync(id);
             if (emp == null) return null;
 
+            if (emp.IsActive == true && dto.IsActive == false)
+            {
+                emp.ResignationDate = DateTime.Now;
+            }
+            else if (dto.IsActive == true)
+            {
+                emp.ResignationDate = null;
+            }
+
             emp.Name = dto.Name;
             emp.Email = dto.Email;
             emp.Phone = dto.Phone;
             emp.PositionId = dto.PositionId;
             emp.IsActive = dto.IsActive;
-
-
             // Nếu người dùng nhập mật khẩu mới thì mới Hash lại
             if (!string.IsNullOrEmpty(dto.Password))
             {

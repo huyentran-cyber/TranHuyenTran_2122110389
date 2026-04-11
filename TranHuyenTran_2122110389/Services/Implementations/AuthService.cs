@@ -1,4 +1,5 @@
-﻿using TranHuyenTran_2122110389.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Helpers;
 using TranHuyenTran_2122110389.Services.Interfaces;
@@ -22,6 +23,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 return null;
             // 1. Tìm nhân viên theo Email
             var user = _context.Employees
+                .Include(e => e.Position)
                 .FirstOrDefault(x => x.Email == dto.Email);
 
             // 2. Kiểm tra tài khoản tồn tại và xác thực mật khẩu
@@ -47,7 +49,12 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                     user.Name,
                     user.Email,
                     user.Role,
-                    user.IsActive
+                    user.IsActive,
+                    Position = user.Position != null ? new
+                    {
+                        user.Position.Id,
+                        user.Position.Name
+                    } : null
                 }
             };
         }

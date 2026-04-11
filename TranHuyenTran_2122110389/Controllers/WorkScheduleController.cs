@@ -56,5 +56,77 @@ namespace TranHuyenTran_2122110389.Controllers
             var schedules = await _scheduleService.GetMySchedulesAsync(employeeId);
             return Ok(schedules);
         }
+
+        [HttpGet("available-shifts/{employeeId}")]
+        public async Task<IActionResult> GetAvailableShifts(int employeeId)
+        {
+            try
+            {
+                var shifts = await _scheduleService.GetAvailableShiftsForEmployeeAsync(employeeId);
+                return Ok(shifts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // 1. API lấy danh sách các ca làm đang chờ phê duyệt (Status = 0 hoặc Pending)
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingSchedules([FromQuery] DateTime? date = null, [FromQuery] int? positionId = null)
+        {
+            try
+            {
+                // Bạn cần khai báo hàm này trong IWorkScheduleService
+                var pendingList = await _scheduleService.GetPendingSchedulesAsync(date, positionId);
+
+                // Trả về danh sách đã được Map sang DTO để có tên nhân viên, tên ca
+                return Ok(pendingList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // 2. API thực hiện phê duyệt ca làm
+        [HttpPut("{id}/confirm")]
+        public async Task<IActionResult> ConfirmSchedule(int id)
+        {
+            try
+            {
+                // Bạn cần khai báo hàm này trong IWorkScheduleService
+                var result = await _scheduleService.ConfirmScheduleAsync(id);
+
+                if (result)
+                {
+                    return Ok(new { message = "Phê duyệt ca làm thành công!" });
+                }
+                return BadRequest(new { message = "Không thể phê duyệt ca làm này." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        //từ chối ca làm
+        [HttpPut("{id}/reject")]
+        public async Task<IActionResult> RejectSchedule(int id)
+        {
+            try
+            {
+                var result = await _scheduleService.RejectScheduleAsync(id);
+                if (result)
+                {
+                    return Ok(new { message = "Đã từ chối ca làm việc!" });
+                }
+                return NotFound("Không tìm thấy ca làm việc.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

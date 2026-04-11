@@ -37,5 +37,6 @@ namespace TranHuyenTran_2122110389.Models
         public ICollection<Attendance>? Attendances { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public DateTime? ResignationDate { get; set; }
     }
 }   

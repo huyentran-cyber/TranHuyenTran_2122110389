@@ -34,6 +34,7 @@ namespace TranHuyenTran_2122110389.Data
                 .WithMany(e => e.Attendances)
                 .HasForeignKey(a => a.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
             //cấu hình trạng thái cho nhân viên, mặc định là true (đang làm việc)
             modelBuilder.Entity<Employee>()
                 .Property(e => e.IsActive)
@@ -43,6 +44,13 @@ namespace TranHuyenTran_2122110389.Data
             modelBuilder.Entity<Position>()
                 .Property(p => p.HourlyRate)
                 .HasColumnType("decimal(18,2)");
+
+            // Cấu hình mối quan hệ giữa Shift và Position
+            modelBuilder.Entity<Shift>()
+                .HasOne(s => s.Position)
+                .WithMany(p => p.Shifts) 
+                .HasForeignKey(s => s.PositionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Cấu hình decimal cho bảng Salary
             modelBuilder.Entity<Salary>(entity => {

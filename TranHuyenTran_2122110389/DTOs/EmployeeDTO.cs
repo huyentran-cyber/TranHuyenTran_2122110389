@@ -19,5 +19,6 @@ namespace TranHuyenTran_2122110389.DTOs
 
         public string? Role { get; set; }
         public bool IsActive { get; set; }
+        public DateTime? ResignationDate { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TranHuyenTran_2122110389.Data;
 
@@ -11,9 +12,11 @@ using TranHuyenTran_2122110389.Data;
 namespace TranHuyenTran_2122110389.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411030046_AddPositionToShift")]
+    partial class AddPositionToShift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,9 +100,6 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Property<int>("PositionId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("ResignationDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
@@ -116,7 +116,7 @@ namespace TranHuyenTran_2122110389.Migrations
                             Email = "admin@gmail.com",
                             IsActive = true,
                             Name = "Admin",
-                            Password = "$2a$11$AlL8i.4vq.mcMBcuX2JZOuDTn6lkC9SXzKzd8OoeofGqmllL6LYXW",
+                            Password = "$2a$11$y5G/xFlE7dFUShihK.w4Rurz0LoCBEB1qpTtm8elgHu5WHDZwe/dS",
                             Phone = "0912345678",
                             PositionId = 1,
                             Role = 0

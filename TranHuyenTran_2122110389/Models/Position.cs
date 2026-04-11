@@ -21,5 +21,7 @@ namespace TranHuyenTran_2122110389.Models
 
         [JsonIgnore]
         public ICollection<Employee>? Employees { get; set; }
+        [JsonIgnore]
+        public ICollection<Shift> Shifts { get; set; }
     }
 }

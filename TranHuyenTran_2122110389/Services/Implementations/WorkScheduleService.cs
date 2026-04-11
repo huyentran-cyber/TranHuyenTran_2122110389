@@ -1,7 +1,9 @@
-﻿using TranHuyenTran_2122110389.Data;
+﻿using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using TranHuyenTran_2122110389.Data;
+using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Models;
 using TranHuyenTran_2122110389.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace TranHuyenTran_2122110389.Services.Implementations
 {
@@ -83,6 +85,81 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 .Where(s => s.EmployeeId == employeeId)
                 .OrderByDescending(s => s.WorkDate)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Shift>> GetAvailableShiftsForEmployeeAsync(int employeeId)
+        {
+            // 1. Tìm nhân viên để biết họ thuộc Vị trí (Position) nào
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Id == employeeId);
+
+            if (employee == null) return new List<Shift>();
+
+            // 2. Lấy danh sách ca làm dựa trên PositionId của nhân viên
+            // Giả sử bảng Shift của bạn có cột PositionId để phân loại
+            return await _context.Shifts
+                .Where(s => s.PositionId == employee.PositionId)
+                .ToListAsync();
+        }
+        // Trong WorkScheduleService.cs
+
+        public async Task<IEnumerable<WorkScheduleDTO>> GetPendingSchedulesAsync(DateTime? date = null, int? positionId = null)
+        {
+            var query = _context.WorkSchedules
+                .Include(s => s.Employee).ThenInclude(e => e.Position)
+                .Include(s => s.Shift)
+                .Where(s => s.Status == "Pending")
+                .AsQueryable();
+
+            // Nếu phía Frontend có truyền ngày (date), thì lọc đúng ngày đó
+            if (date.HasValue)
+            {
+                query = query.Where(s => s.WorkDate.Date == date.Value.Date);
+            }
+            // Lọc theo Vị trí 
+            if (positionId.HasValue && positionId > 0)
+                query = query.Where(s => s.Employee.PositionId == positionId.Value);
+
+            return await query
+                .Select(s => new WorkScheduleDTO
+                {
+                    Id = s.Id,
+                    EmployeeId = s.EmployeeId,
+                    ShiftId = s.ShiftId,
+                    EmployeeName = s.Employee.Name,
+                    PositionName = s.Employee.Position != null ? s.Employee.Position.Name : "N/A",
+                    ShiftName = s.Shift.Name,
+                    StartTime = s.Shift.StartTime,
+                    EndTime = s.Shift.EndTime,
+                    WorkDate = s.WorkDate,
+                    Status = s.Status
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> ConfirmScheduleAsync(int scheduleId)
+        {
+            var schedule = await _context.WorkSchedules.FindAsync(scheduleId);
+            if (schedule == null) return false;
+
+            // Cập nhật trạng thái thành chuỗi "Confirmed" để khớp với Model
+            schedule.Status = "Confirmed";
+
+            _context.WorkSchedules.Update(schedule);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> RejectScheduleAsync(int scheduleId)
+        {
+            var schedule = await _context.WorkSchedules.FindAsync(scheduleId);
+            if (schedule == null) return false;
+
+            // Cập nhật trạng thái thành Rejected
+            schedule.Status = "Rejected";
+
+            _context.WorkSchedules.Update(schedule);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
