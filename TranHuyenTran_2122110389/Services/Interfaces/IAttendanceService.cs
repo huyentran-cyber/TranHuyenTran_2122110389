@@ -5,8 +5,9 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
 {
     public interface IAttendanceService
     {
-        IEnumerable<AttendanceDTO> GetAll();
+        Task<IEnumerable<AttendanceDTO>> GetAllByDateAsync(DateTime date);
         Task<AttendanceDTO> CheckInAsync(int employeeId);
         Task<AttendanceDTO> CheckOutAsync(int employeeId);
+
     }
 }

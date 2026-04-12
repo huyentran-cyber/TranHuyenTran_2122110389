@@ -78,13 +78,34 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             return newSchedule;
         }
 
-        public async Task<IEnumerable<WorkSchedule>> GetMySchedulesAsync(int employeeId)
+        public async Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId)
         {
-            return await _context.WorkSchedules
+            var schedules = await _context.WorkSchedules
                 .Include(s => s.Shift)
+                .Include(s => s.Employee)
+                    .ThenInclude(e => e.Attendances) // Lấy kèm lịch sử chấm công
                 .Where(s => s.EmployeeId == employeeId)
                 .OrderByDescending(s => s.WorkDate)
                 .ToListAsync();
+
+            return schedules.Select(s => new WorkScheduleDTO
+            {
+                Id = s.Id,
+                ShiftName = s.Shift?.Name,
+                StartTime = s.Shift?.StartTime ?? TimeSpan.Zero,
+                EndTime = s.Shift?.EndTime ?? TimeSpan.Zero,
+                WorkDate = s.WorkDate,
+                Status = s.Status,
+                // Tìm bản ghi chấm công khớp với ngày làm việc này
+                // (Giả sử bạn gán dữ liệu này vào 2 trường mới trong DTO hoặc dùng chung object Attendance)
+                CheckInTime = s.Employee?.Attendances?
+                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.CheckIn,
+                CheckOutTime = s.Employee?.Attendances?
+                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.CheckOut,
+                // Lấy status chấm công để biết muộn/về sớm bao nhiêu phút
+                AttendanceStatus = s.Employee?.Attendances?
+                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.Status
+            }).ToList();
         }
 
         public async Task<IEnumerable<Shift>> GetAvailableShiftsForEmployeeAsync(int employeeId)

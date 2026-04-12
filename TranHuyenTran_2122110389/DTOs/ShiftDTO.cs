@@ -10,5 +10,7 @@
 
         public String EndTime { get; set; }
         public string? DeptType { get; set; }
+
+        public int PositionId { get; set; }
     }
 }

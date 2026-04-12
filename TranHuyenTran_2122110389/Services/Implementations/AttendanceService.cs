@@ -33,20 +33,41 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             _context = context;
         }
 
-        public IEnumerable<AttendanceDTO> GetAll()
+        public async Task<IEnumerable<AttendanceDTO>> GetAllByDateAsync(DateTime date)
         {
-            return _context.Attendances
+            // 1. Lấy danh sách từ DB kèm theo các bảng liên quan
+            var list = await _context.Attendances
                 .Include(a => a.Employee)
+                    .ThenInclude(e => e.Position)
+                .Include(a => a.WorkSchedule)
+                    .ThenInclude(ws => ws.Shift)
+                .Where(a => a.CheckIn.Date == date.Date)
                 .OrderByDescending(a => a.CheckIn)
-                .Select(a => new AttendanceDTO // Bước Mapping từ Model sang DTO
-                {
-                    Id = a.Id,
-                    EmployeeId = a.EmployeeId,
-                    CheckIn = a.CheckIn,
-                    CheckOut = a.CheckOut,
-                    Status = a.Status
-                })
-                .ToList();
+                .ToListAsync();
+
+            // 2. Mapping sang DTO - Bước này cực kỳ quan trọng để hiện tên trên Web
+            return list.Select(a => new AttendanceDTO
+            {
+                Id = a.Id,
+                EmployeeId = a.EmployeeId,
+
+                // Gán tên nhân viên (Fix lỗi trống cột Nhân viên)
+                EmployeeName = a.Employee?.Name ?? "N/A",
+
+                // Gán tên ca làm (Fix lỗi hiện N/A ở Ca làm)
+                ShiftName = a.WorkSchedule?.Shift?.Name ?? "N/A",
+
+                // Gán tên vị trí
+                PositionName = a.Employee?.Position?.Name ?? "Staff",
+
+                // Lấy giờ quy định để hiện dòng nhỏ dưới tên ca
+                StartTime = a.WorkSchedule?.Shift?.StartTime ?? TimeSpan.Zero,
+                EndTime = a.WorkSchedule?.Shift?.EndTime ?? TimeSpan.Zero,
+
+                CheckIn = a.CheckIn,
+                CheckOut = a.CheckOut,
+                Status = a.Status
+            }).ToList();
         }
 
         public async Task<AttendanceDTO> CheckInAsync(int employeeId)

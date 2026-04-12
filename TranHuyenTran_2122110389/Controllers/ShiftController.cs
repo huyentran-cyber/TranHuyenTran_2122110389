@@ -29,6 +29,7 @@ namespace TranHuyenTran_2122110389.Controllers
                     // Chuyển string "HH:mm" từ Frontend sang TimeSpan
                     StartTime = TimeSpan.Parse(dto.StartTime),
                     EndTime = TimeSpan.Parse(dto.EndTime),
+                    PositionId = dto.PositionId,
                     DeptType = dto.DeptType ?? "All"
                 };
 
@@ -39,6 +40,14 @@ namespace TranHuyenTran_2122110389.Controllers
             {
                 return BadRequest("Định dạng thời gian không hợp lệ (HH:mm:ss).");
             }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await _service.DeleteAsync(id);
+            if (success) return Ok(new { message = "Xóa ca thành công" });
+            return BadRequest("Không thể xóa ca này!");
         }
     }
 }

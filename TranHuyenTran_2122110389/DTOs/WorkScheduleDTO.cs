@@ -20,5 +20,9 @@
             public string Status { get; set; } = "Pending";
             public TimeSpan StartTime { get; set; }
             public TimeSpan EndTime { get; set; }
+
+            public DateTime? CheckInTime { get; set; }
+            public DateTime? CheckOutTime { get; set; }
+            public string? AttendanceStatus { get; set; }
         }
     }

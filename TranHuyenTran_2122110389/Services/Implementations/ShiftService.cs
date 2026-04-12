@@ -15,7 +15,9 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         public ShiftService(AppDbContext context) => _context = context;
 
         public async Task<IEnumerable<Shift>> GetAllAsync()
-            => await _context.Shifts.ToListAsync();
+            => await _context.Shifts
+            .Include(s => s.Position)
+            .ToListAsync();
 
         public async Task<Shift> GetByIdAsync(int id)
             => await _context.Shifts.FindAsync(id);
@@ -25,6 +27,15 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             _context.Shifts.Add(model);
             await _context.SaveChangesAsync();
             return model;
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var shift = await _context.Shifts.FindAsync(id);
+            if (shift == null) return false;
+
+            _context.Shifts.Remove(shift);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
     }

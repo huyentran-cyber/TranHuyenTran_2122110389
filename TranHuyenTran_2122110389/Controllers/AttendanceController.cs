@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TranHuyenTran_2122110389.Services.Implementations;
 using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Controllers
@@ -17,6 +18,12 @@ namespace TranHuyenTran_2122110389.Controllers
             _service = service;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAttendances([FromQuery] DateTime date)
+        {
+            var result = await _service.GetAllByDateAsync(date);
+            return Ok(result);
+        }
         private int GetUserId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);

@@ -30,19 +30,39 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             return request;
         }
 
-        public async Task<IEnumerable<LeaveRequest>> GetByEmployeeAsync(int employeeId)
+        // FIX: Đổi kiểu trả về sang LeaveRequestDTO để hiện được Status và IsEmergency đúng chuẩn
+        public async Task<IEnumerable<LeaveRequestDTO>> GetByEmployeeAsync(int employeeId)
         {
             return await _context.LeaveRequests
                 .Where(r => r.EmployeeId == employeeId)
                 .OrderByDescending(r => r.OffDate)
+                .Select(r => new LeaveRequestDTO
+                {
+                    Id = r.Id,
+                    OffDate = r.OffDate,
+                    Reason = r.Reason,
+                    IsEmergency = r.IsEmergency,
+                    Status = r.Status.ToString()
+                })
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<LeaveRequest>> GetPendingRequestsAsync()
+        // FIX: Trả về DTO để Frontend lấy được EmployeeName
+        public async Task<IEnumerable<LeaveRequestDTO>> GetPendingRequestsAsync()
         {
             return await _context.LeaveRequests
                 .Include(r => r.Employee)
                 .Where(r => r.Status == LeaveStatus.Pending)
+                .Select(r => new LeaveRequestDTO
+                {
+                    Id = r.Id,
+                    EmployeeId = r.EmployeeId,
+                    EmployeeName = r.Employee != null ? r.Employee.Name : "N/A",
+                    OffDate = r.OffDate,
+                    Reason = r.Reason,
+                    IsEmergency = r.IsEmergency,
+                    Status = r.Status.ToString()
+                })
                 .ToListAsync();
         }
 
@@ -52,7 +72,6 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             if (request == null) return false;
 
             request.Status = status;
-
 
             if (status == LeaveStatus.Approved)
             {
@@ -64,7 +83,6 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 if (schedule != null)
                 {
                     // Cập nhật trạng thái lịch thành OnLeave (Nghỉ có phép)
-                    // Việc này giúp nhân viên không bị đánh dấu là Absent (Nghỉ không phép)
                     schedule.Status = "OnLeave";
                 }
             }

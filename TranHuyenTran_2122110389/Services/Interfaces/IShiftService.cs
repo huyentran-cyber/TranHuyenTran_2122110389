@@ -8,5 +8,6 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
         Task<IEnumerable<Shift>> GetAllAsync();
         Task<Shift> CreateAsync(Shift shift);
         Task<Shift> GetByIdAsync(int id);
+        Task<bool> DeleteAsync(int id);
     }
 }
