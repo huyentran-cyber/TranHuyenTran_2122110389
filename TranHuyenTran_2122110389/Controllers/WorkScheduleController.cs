@@ -51,9 +51,9 @@ namespace TranHuyenTran_2122110389.Controllers
         }
 
         [HttpGet("my-schedule/{employeeId}")]
-        public async Task<IActionResult> GetMySchedule(int employeeId)
+        public async Task<IActionResult> GetMySchedule(int employeeId , [FromQuery] int month, [FromQuery] int year)
         {
-            var schedules = await _scheduleService.GetMySchedulesAsync(employeeId);
+            var schedules = await _scheduleService.GetMySchedulesAsync(employeeId, month, year);
             return Ok(schedules);
         }
 

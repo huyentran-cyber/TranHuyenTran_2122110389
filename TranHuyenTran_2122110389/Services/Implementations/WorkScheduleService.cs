@@ -78,13 +78,16 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             return newSchedule;
         }
 
-        public async Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId)
+        public async Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId, int month, int year)
+
         {
             var schedules = await _context.WorkSchedules
                 .Include(s => s.Shift)
                 .Include(s => s.Employee)
                     .ThenInclude(e => e.Attendances) // Lấy kèm lịch sử chấm công
-                .Where(s => s.EmployeeId == employeeId)
+                .Where(s => s.EmployeeId == employeeId &&
+                            s.WorkDate.Month == month &&
+                            s.WorkDate.Year == year)
                 .OrderByDescending(s => s.WorkDate)
                 .ToListAsync();
 

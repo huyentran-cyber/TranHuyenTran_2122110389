@@ -7,7 +7,7 @@ namespace TranHuyenTran_2122110389.Services.Interfaces
     public interface IWorkScheduleService
     {
         Task<WorkSchedule> RegisterAsync(int employeeId, int shiftId, DateTime date);
-        Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId);
+        Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId, int month, int year);
 
         Task<IEnumerable<Shift>> GetAvailableShiftsForEmployeeAsync(int employeeId);
 
