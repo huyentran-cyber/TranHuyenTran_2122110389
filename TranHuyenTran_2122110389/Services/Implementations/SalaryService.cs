@@ -13,105 +13,183 @@ namespace TranHuyenTran_2122110389.Services.Implementations
 
         public async Task<bool> CalculateMonthlySalaryAsync(int month, int year)
         {
+            // 1. Lấy tất cả nhân viên (bao gồm cả người đã nghỉ)
             var employees = await _context.Employees.Include(e => e.Position).ToListAsync();
 
             foreach (var emp in employees)
             {
-                if (emp.Position == null) continue;
-
-                // 1. Tính giờ làm thực tế & Phạt vi phạm (Đi muộn/Về sớm)
+                // 2. Lấy dữ liệu chấm công trong tháng/năm được chọn
                 var attendances = await _context.Attendances
-                    .Where(a => a.EmployeeId == emp.Id && a.CheckIn.Month == month && a.CheckIn.Year == year && a.CheckOut != null)
+                    .Where(a => a.EmployeeId == emp.Id && a.CheckIn.Month == month && a.CheckIn.Year == year)
                     .ToListAsync();
 
-                decimal totalHours = 0;
-                decimal penaltyViolation = attendances.Count(a => a.IsLate || a.IsEarly) * 20000; // Phạt 20k/lần
-
-                foreach (var att in attendances)
-                {
-                    totalHours += (decimal)(att.CheckOut.Value - att.CheckIn).TotalHours;
-                }
-
-                // 2. Tính phạt Nghỉ không phép (Absent)
-                var absentSchedules = await _context.WorkSchedules
-                    .Include(s => s.Shift)
-                    .Where(s => s.EmployeeId == emp.Id && s.WorkDate.Month == month && s.WorkDate.Year == year && s.Status == "Absent")
+                // 3. Lấy dữ liệu lịch làm việc để check nghỉ không phép (Absent)
+                var schedules = await _context.WorkSchedules
+                    .Where(s => s.EmployeeId == emp.Id && s.WorkDate.Month == month && s.WorkDate.Year == year)
                     .ToListAsync();
 
-                decimal penaltyAbsent = 0;
-                foreach (var s in absentSchedules)
+                // Chỉ tính toán nếu nhân viên có đi làm hoặc có lịch làm việc
+                if (attendances.Any() || schedules.Any())
                 {
-                    decimal shiftHours = (decimal)(s.Shift.EndTime - s.Shift.StartTime).TotalHours;
-                    penaltyAbsent += (shiftHours * emp.Position.HourlyRate); // Phạt thêm 1 ngày lương cơ bản ca đó
-                }
+                    decimal hourlyRate = emp.Position?.HourlyRate ?? 0;
 
-                // 3. Tổng lương thực nhận
-                decimal totalAmount = (totalHours * emp.Position.HourlyRate) - penaltyViolation - penaltyAbsent;
+                    // --- A. TÍNH TỔNG GIỜ THỰC TẾ (Để lưu DB & hiển thị báo cáo) ---
+                    double actualTotalHours = attendances.Where(a => a.CheckOut != null)
+                                                         .Sum(a => (a.CheckOut.Value - a.CheckIn).TotalHours);
 
-                // 4. Lưu dữ liệu
-                var existing = await _context.Salaries.FirstOrDefaultAsync(s => s.EmployeeId == emp.Id && s.Month == month && s.Year == year);
-                if (existing != null)
-                {
-                    existing.TotalHours = totalHours;
-                    existing.HourlyRateAtTime = emp.Position.HourlyRate;
-                    existing.PenaltyViolation = penaltyViolation;
-                    existing.PenaltyAbsent = penaltyAbsent;
-                    existing.TotalAmount = totalAmount;
-                    existing.CalculatedAt = DateTime.Now;
-                }
-                else
-                {
-                    _context.Salaries.Add(new Salary
+                    // --- B. TÍNH TỔNG TIỀN GỐC (Gross) THEO CA (1 ca = 8 tiếng) ---
+                    int totalShifts = attendances.Count(a => a.CheckOut != null);
+                    decimal totalGrossAmount = totalShifts * 8 * hourlyRate;
+
+                    // --- C. TÍNH PHẠT VI PHẠM (Đi muộn/Về sớm theo giờ thiếu) ---
+                    double totalViolationHours = 0;
+                    var violationAtts = attendances.Where(a => a.CheckOut != null &&
+                                                         !string.IsNullOrEmpty(a.Status) &&
+                                                         (a.Status.Contains("Late") || a.Status.Contains("Early")));
+
+                    foreach (var att in violationAtts)
                     {
-                        EmployeeId = emp.Id,
-                        Month = month,
-                        Year = year,
-                        TotalHours = totalHours,
-                        HourlyRateAtTime = emp.Position.HourlyRate,
-                        PenaltyViolation = penaltyViolation,
-                        PenaltyAbsent = penaltyAbsent,
-                        TotalAmount = totalAmount
-                    });
+                        double workDuration = (att.CheckOut.Value - att.CheckIn).TotalHours;
+                        if (workDuration < 8) // Nếu làm ít hơn 8 tiếng chuẩn
+                        {
+                            totalViolationHours += (8 - workDuration); // Cộng dồn số giờ bị thiếu
+                        }
+                    }
+                    // Tiền phạt vi phạm = Số giờ thiếu * Lương 1 giờ
+                    decimal penaltyViolation = (decimal)totalViolationHours * hourlyRate;
+
+                    // --- D. TÍNH PHẠT NGHỈ KHÔNG PHÉP (Absent) ---
+                    // Chỉ phạt những ngày có trạng thái "Absent" trong lịch làm việc
+                    int absentCount = schedules.Count(s => s.Status == "Absent");
+                    decimal penaltyAbsent = absentCount * 100000; // Mức phạt 100k/ca nghỉ KP
+
+                    // --- E. TỔNG THỰC NHẬN (TotalAmount) ---
+                    // Thực nhận = Lương Gốc (theo ca) - Phạt Giờ Thiếu - Phạt Nghỉ KP
+                    decimal totalAmount = totalGrossAmount - penaltyViolation - penaltyAbsent;
+
+                    // Nếu phạt nhiều hơn lương thì gán bằng 0, không để lương âm
+                    if (totalAmount < 0) totalAmount = 0;
+
+                    // --- F. LƯU HOẶC CẬP NHẬT VÀO DATABASE ---
+                    var existingSalary = await _context.Salaries
+                        .FirstOrDefaultAsync(s => s.EmployeeId == emp.Id && s.Month == month && s.Year == year);
+
+                    if (existingSalary != null)
+                    {
+                        existingSalary.TotalHours = (decimal)actualTotalHours;
+                        existingSalary.HourlyRateAtTime = hourlyRate;
+                        existingSalary.PenaltyViolation = penaltyViolation;
+                        existingSalary.PenaltyAbsent = penaltyAbsent;
+                        existingSalary.TotalAmount = totalAmount;
+                        existingSalary.CalculatedAt = DateTime.Now;
+                    }
+                    else
+                    {
+                        _context.Salaries.Add(new Salary
+                        {
+                            EmployeeId = emp.Id,
+                            Month = month,
+                            Year = year,
+                            TotalHours = (decimal)actualTotalHours,
+                            HourlyRateAtTime = hourlyRate,
+                            PenaltyViolation = penaltyViolation,
+                            PenaltyAbsent = penaltyAbsent,
+                            TotalAmount = totalAmount,
+                            CalculatedAt = DateTime.Now
+                        });
+                    }
                 }
             }
+            // Lưu tất cả thay đổi vào bảng Salaries
             await _context.SaveChangesAsync();
             return true;
         }
 
+        public async Task<IEnumerable<SalaryReportDTO>> GetMonthlyReportAsync(int month, int year)
+        {
+            var salaries = await _context.Salaries
+                .Include(s => s.Employee).ThenInclude(e => e.Position)
+                .Where(s => s.Month == month && s.Year == year)
+                .ToListAsync();
+
+            var report = new List<SalaryReportDTO>();
+
+            foreach (var s in salaries)
+            {
+                var atts = await _context.Attendances
+                    .Where(a => a.EmployeeId == s.EmployeeId && a.CheckIn.Month == month && a.CheckIn.Year == year)
+                    .ToListAsync();
+
+                var violationList = atts
+                    .Where(a => !string.IsNullOrEmpty(a.Status) && (a.Status.Contains("Late") || a.Status.Contains("Early")))
+                    .Select(a => a.Status)
+                    .Distinct()
+                    .ToList();
+
+                var hasAbsent = await _context.WorkSchedules
+                    .AnyAsync(ws => ws.EmployeeId == s.EmployeeId &&
+                                    ws.WorkDate.Month == month &&
+                                    ws.WorkDate.Year == year &&
+                                    ws.Status == "Absent");
+
+                        if (hasAbsent)
+                        {
+                            violationList.Add("Nghỉ không phép");
+                        }
+
+                report.Add(new SalaryReportDTO
+                {
+                    EmployeeId = s.EmployeeId,
+                    EmployeeName = s.Employee?.Name ?? "N/A",
+                    PositionName = s.Employee?.Position?.Name ?? "N/A",
+                    TotalDays = atts.Select(a => a.CheckIn.Date).Distinct().Count(),
+                    TotalShifts = atts.Count,
+                    TotalHours = s.TotalHours,
+                    HourlyRate = s.HourlyRateAtTime, // Dùng tỉ giá lúc tính lương
+                    Violations = violationList.Any() ? string.Join(", ", violationList) : null,
+                    TotalSalary = s.TotalAmount,
+                    TotalPenalty = s.PenaltyViolation + s.PenaltyAbsent,
+                    PenaltyViolation = s.PenaltyViolation,
+                    PenaltyAbsent = s.PenaltyAbsent,
+                    Month = s.Month,
+                    Year = s.Year
+                });
+            }
+
+            return report;
+        }
+        // Hàm này giúp nhân viên xem lại lịch sử lương các tháng trước của chính họ
         public async Task<IEnumerable<SalaryDTO>> GetSalaryHistoryAsync(int employeeId)
         {
-            return await _context.Salaries
-                .Where(s => s.EmployeeId == employeeId)
-                .OrderByDescending(s => s.Year).ThenByDescending(s => s.Month)
-                .Select(s => new SalaryDTO
+            var salaries = await _context.Salaries
+        .Where(s => s.EmployeeId == employeeId)
+        .ToListAsync();
+
+            var result = new List<SalaryDTO>();
+            foreach (var s in salaries)
+            {
+                // GIỐNG SALARY MANAGER: Đếm số ngày từ bảng Attendances
+                int actualDays = await _context.Attendances
+                    .Where(a => a.EmployeeId == employeeId && a.CheckIn.Month == s.Month && a.CheckIn.Year == s.Year)
+                    .Select(a => a.CheckIn.Date)
+                    .Distinct()
+                    .CountAsync();
+
+                result.Add(new SalaryDTO
                 {
                     Id = s.Id,
                     Month = s.Month,
                     Year = s.Year,
                     TotalHours = s.TotalHours,
-                    HourlyRate = s.HourlyRateAtTime,
+                    TotalAmount = s.TotalAmount,
                     PenaltyViolation = s.PenaltyViolation,
                     PenaltyAbsent = s.PenaltyAbsent,
-                    TotalAmount = s.TotalAmount,
-                    CalculatedAt = s.CalculatedAt
-                }).ToListAsync();
-        }
-
-        public async Task<IEnumerable<SalaryReportDTO>> GetMonthlyReportAsync(int month, int year)
-        {
-            return await _context.Salaries
-                .Include(s => s.Employee).ThenInclude(e => e.Position)
-                .Where(s => s.Month == month && s.Year == year)
-                .Select(s => new SalaryReportDTO
-                {
-                    EmployeeId = s.EmployeeId,
-                    FullName = s.Employee.Name,
-                    PositionName = s.Employee.Position.Name,
-                    Month = s.Month,
-                    Year = s.Year,
-                    TotalHours = s.TotalHours,
-                    TotalAmount = s.TotalAmount
-                }).ToListAsync();
+                    CalculatedAt = s.CalculatedAt,
+                    // Gán giá trị đếm được vào đây
+                    TotalDays = actualDays
+                });
+            }
+            return result;
         }
     }
 }
