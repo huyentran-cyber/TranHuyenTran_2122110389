@@ -175,7 +175,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                     .Distinct()
                     .CountAsync();
 
-                result.Add(new SalaryDTO
+                result.Add(new SalaryDTO    
                 {
                     Id = s.Id,
                     Month = s.Month,

@@ -42,6 +42,30 @@ namespace TranHuyenTran_2122110389.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] ShiftDTO dto)
+        {
+            try
+            {
+                var shift = new Shift
+                {
+                    Name = dto.Name,
+                    StartTime = TimeSpan.Parse(dto.StartTime),
+                    EndTime = TimeSpan.Parse(dto.EndTime),
+                    PositionId = dto.PositionId,
+                    DeptType = dto.DeptType ?? "All"
+                };
+
+                var success = await _service.UpdateAsync(id, shift);
+                if (success) return Ok(new { message = "Cập nhật ca thành công" });
+                return NotFound("Không tìm thấy ca cần sửa");
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Định dạng thời gian không hợp lệ (HH:mm).");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

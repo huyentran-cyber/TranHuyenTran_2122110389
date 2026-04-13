@@ -28,6 +28,22 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             await _context.SaveChangesAsync();
             return model;
         }
+
+        public async Task<bool> UpdateAsync(int id, Shift model)
+        {
+            var existingShift = await _context.Shifts.FindAsync(id);
+            if (existingShift == null) return false;
+
+            // Cập nhật các trường
+            existingShift.Name = model.Name;
+            existingShift.StartTime = model.StartTime;
+            existingShift.EndTime = model.EndTime;
+            existingShift.PositionId = model.PositionId;
+            existingShift.DeptType = model.DeptType;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
         public async Task<bool> DeleteAsync(int id)
         {
             var shift = await _context.Shifts.FindAsync(id);
