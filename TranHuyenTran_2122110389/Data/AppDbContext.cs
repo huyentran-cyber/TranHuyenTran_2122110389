@@ -66,7 +66,7 @@ namespace TranHuyenTran_2122110389.Data
                 {
                     Id = 1,
                     Name = "Quản lý",
-                    HourlyRate = 50000,
+                    HourlyRate = 0,
                     MinStaff = 1,
                     MaxShiftPerDay = 1
                 }
@@ -78,8 +78,8 @@ namespace TranHuyenTran_2122110389.Data
                 new Employee
                 {
                     Id = 1,
-                    Name = "Admin",
-                    Email = "admin@gmail.com",
+                    Name = "Trần Huyền Trân",
+                    Email = "huyentran@gmail.com",
                     Phone = "0912345678",
                     Password = PasswordHelper.HashPassword("123456"),
                     Role = Role.Manager,

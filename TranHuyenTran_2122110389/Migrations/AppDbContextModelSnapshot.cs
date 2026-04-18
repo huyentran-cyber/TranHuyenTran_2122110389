@@ -45,9 +45,6 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Property<bool>("IsLate")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("ScheduleId")
                         .HasColumnType("int");
 
@@ -113,10 +110,10 @@ namespace TranHuyenTran_2122110389.Migrations
                         new
                         {
                             Id = 1,
-                            Email = "admin@gmail.com",
+                            Email = "huyentran@gmail.com",
                             IsActive = true,
-                            Name = "Admin",
-                            Password = "$2a$11$AlL8i.4vq.mcMBcuX2JZOuDTn6lkC9SXzKzd8OoeofGqmllL6LYXW",
+                            Name = "Trần Huyền Trân",
+                            Password = "$2a$11$lcOVsqKmQgGJrVs6I3gt/eq15SUEsLYfRZMyhDcLlJ.NPol2QzQp2",
                             Phone = "0912345678",
                             PositionId = 1,
                             Role = 0
@@ -185,7 +182,7 @@ namespace TranHuyenTran_2122110389.Migrations
                         new
                         {
                             Id = 1,
-                            HourlyRate = 50000m,
+                            HourlyRate = 0m,
                             MaxShiftPerDay = 1,
                             MinStaff = 1,
                             Name = "Quản lý"

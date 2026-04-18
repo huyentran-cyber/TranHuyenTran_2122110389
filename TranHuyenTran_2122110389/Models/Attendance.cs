@@ -25,7 +25,6 @@ namespace TranHuyenTran_2122110389.Models
 
         public bool IsEarly { get; set; } // Tự động tính nếu về sớm
 
-        public string? Note { get; set; }
         public string? Status { get; set; }
     }
 }   
