@@ -12,8 +12,8 @@ using TranHuyenTran_2122110389.Data;
 namespace TranHuyenTran_2122110389.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260410050314_AddHourlyRateToEmployee")]
-    partial class AddHourlyRateToEmployee
+    [Migration("20260413064256_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,9 +48,6 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Property<bool>("IsLate")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("ScheduleId")
                         .HasColumnType("int");
 
@@ -78,9 +75,6 @@ namespace TranHuyenTran_2122110389.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("HourlyRate")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -103,6 +97,9 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Property<int>("PositionId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ResignationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
@@ -116,11 +113,10 @@ namespace TranHuyenTran_2122110389.Migrations
                         new
                         {
                             Id = 1,
-                            Email = "admin@gmail.com",
-                            HourlyRate = 0m,
+                            Email = "huyentran@gmail.com",
                             IsActive = true,
-                            Name = "Admin",
-                            Password = "$2a$11$8.8giRVEnNInv2OGXMKDFePVUhvkv5jXjIPVc6YQodw/roadNaSH.",
+                            Name = "Trần Huyền Trân",
+                            Password = "$2a$11$bRtU6aa88S.UeJ2.GWEWV..VqLM9lzEueYG1DBP8uJEm8m2gUdS1u",
                             Phone = "0912345678",
                             PositionId = 1,
                             Role = 0
@@ -189,7 +185,7 @@ namespace TranHuyenTran_2122110389.Migrations
                         new
                         {
                             Id = 1,
-                            HourlyRate = 50000m,
+                            HourlyRate = 0m,
                             MaxShiftPerDay = 1,
                             MinStaff = 1,
                             Name = "Quản lý"
@@ -259,10 +255,15 @@ namespace TranHuyenTran_2122110389.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("PositionId")
+                        .HasColumnType("int");
+
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PositionId");
 
                     b.ToTable("Shifts");
                 });
@@ -348,6 +349,17 @@ namespace TranHuyenTran_2122110389.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("TranHuyenTran_2122110389.Models.Shift", b =>
+                {
+                    b.HasOne("TranHuyenTran_2122110389.Models.Position", "Position")
+                        .WithMany("Shifts")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Position");
+                });
+
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.WorkSchedule", b =>
                 {
                     b.HasOne("TranHuyenTran_2122110389.Models.Employee", "Employee")
@@ -377,6 +389,8 @@ namespace TranHuyenTran_2122110389.Migrations
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Position", b =>
                 {
                     b.Navigation("Employees");
+
+                    b.Navigation("Shifts");
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Shift", b =>

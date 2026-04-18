@@ -57,7 +57,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("ScheduleId");
 
-                    b.ToTable("Attendances");
+                    b.ToTable("Attendances", (string)null);
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Employee", b =>
@@ -104,7 +104,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("PositionId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
 
                     b.HasData(
                         new
@@ -113,7 +113,7 @@ namespace TranHuyenTran_2122110389.Migrations
                             Email = "huyentran@gmail.com",
                             IsActive = true,
                             Name = "Trần Huyền Trân",
-                            Password = "$2a$11$lcOVsqKmQgGJrVs6I3gt/eq15SUEsLYfRZMyhDcLlJ.NPol2QzQp2",
+                            Password = "$2a$11$bRtU6aa88S.UeJ2.GWEWV..VqLM9lzEueYG1DBP8uJEm8m2gUdS1u",
                             Phone = "0912345678",
                             PositionId = 1,
                             Role = 0
@@ -149,7 +149,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("LeaveRequests");
+                    b.ToTable("LeaveRequests", (string)null);
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Position", b =>
@@ -176,7 +176,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Positions");
+                    b.ToTable("Positions", (string)null);
 
                     b.HasData(
                         new
@@ -228,7 +228,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Salaries");
+                    b.ToTable("Salaries", (string)null);
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Shift", b =>
@@ -262,7 +262,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("PositionId");
 
-                    b.ToTable("Shifts");
+                    b.ToTable("Shifts", (string)null);
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.WorkSchedule", b =>
@@ -292,7 +292,7 @@ namespace TranHuyenTran_2122110389.Migrations
 
                     b.HasIndex("ShiftId");
 
-                    b.ToTable("WorkSchedules");
+                    b.ToTable("WorkSchedules", (string)null);
                 });
 
             modelBuilder.Entity("TranHuyenTran_2122110389.Models.Attendance", b =>

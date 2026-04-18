@@ -14,7 +14,7 @@
 
         public decimal HourlyRate { get; set; }
         public decimal TotalHours { get; set; }
-
+        public decimal GrossSalary {get; set;}
         public decimal TotalSalary { get; set; }
         public decimal PenaltyAbsent { get; set; }
         public decimal PenaltyViolation { get; set; }

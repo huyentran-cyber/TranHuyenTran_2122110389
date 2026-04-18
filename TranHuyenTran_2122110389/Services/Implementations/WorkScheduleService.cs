@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using TranHuyenTran_2122110389.Controllers;
 using TranHuyenTran_2122110389.Data;
 using TranHuyenTran_2122110389.DTOs;
 using TranHuyenTran_2122110389.Models;
+using TranHuyenTran_2122110389.Controllers;
 using TranHuyenTran_2122110389.Services.Interfaces;
 
 namespace TranHuyenTran_2122110389.Services.Implementations
@@ -18,12 +20,29 @@ namespace TranHuyenTran_2122110389.Services.Implementations
 
         public async Task<WorkSchedule> RegisterAsync(int employeeId, int shiftId, DateTime date)
         {
+            if (!WorkScheduleController.RegistrationOpen)
+            {
+                throw new Exception("Hệ thống hiện đang đóng cổng đăng ký ca làm. Vui lòng quay lại sau hoặc liên hệ Quản lý!");
+            }
             // 1. Lấy thông tin nhân viên và vị trí (để biết là Phục vụ hay Pha chế)
             var employee = await _context.Employees
                 .Include(e => e.Position)
                 .FirstOrDefaultAsync(e => e.Id == employeeId);
 
             if (employee == null) throw new Exception("Nhân viên không tồn tại.");
+
+            var position = employee.Position;
+
+            // ĐẾM XEM ĐÃ CÓ BAO NHIÊU NGƯỜI ĐĂNG KÝ CA NÀY, NGÀY NÀY RỒI
+            int currentStaffCount = await _context.WorkSchedules
+                .CountAsync(s => s.ShiftId == shiftId
+                            && s.WorkDate.Date == date.Date
+                            && s.Status != "Rejected");
+
+            if (currentStaffCount >= position.MinStaff)
+            {
+                throw new Exception($"Lỗi: Ca làm này vào ngày {date:dd/MM} đã đủ nhân sự ({position.MinStaff} người). Vui lòng chọn ca khác!");
+            }
 
             // 2. LOGIC TÍNH TOÁN VÀ CHẶN THEO TUẦN (Thứ 2 - Chủ nhật)
             // Tìm ngày Thứ 2 của tuần chứa ngày 'date' nhân viên đang chọn
@@ -45,9 +64,13 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             }
 
             // 3. LOGIC CHẶN THEO NGÀY (Trùng giờ và MaxShiftPerDay)
+            var dateOnly = date.Date;
             var todaySchedules = await _context.WorkSchedules
-                .Include(s => s.Shift)
-                .Where(s => s.EmployeeId == employeeId && s.WorkDate.Date == date.Date)
+                .Include(s => s.Shift)  
+                .Where(s => s.EmployeeId == employeeId
+                    && s.WorkDate.Year == dateOnly.Year
+                    && s.WorkDate.Month == dateOnly.Month
+                    && s.WorkDate.Day == dateOnly.Day)
                 .ToListAsync();
 
             var currentShift = await _context.Shifts.FindAsync(shiftId);
@@ -59,9 +82,11 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 }
             }
 
-            if (todaySchedules.Count >= employee.Position.MaxShiftPerDay)
+            int maxAllowed = employee.Position.MaxShiftPerDay;
+
+            if (todaySchedules.Count >= maxAllowed)
             {
-                throw new Exception($"Lỗi: Vị trí {employee.Position.Name} chỉ được đăng ký tối đa {employee.Position.MaxShiftPerDay} ca/ngày.");
+                throw new Exception($"Lỗi: Theo quy định, vị trí {employee.Position.Name} chỉ được đăng ký tối đa {maxAllowed} ca/ngày.");
             }
 
             // 4. Lưu đăng ký
@@ -69,7 +94,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
             {
                 EmployeeId = employeeId,
                 ShiftId = shiftId,
-                WorkDate = date,
+                WorkDate = dateOnly,
                 Status = "Pending"
             };
 

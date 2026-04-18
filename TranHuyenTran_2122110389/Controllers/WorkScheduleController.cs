@@ -10,11 +10,25 @@ namespace TranHuyenTran_2122110389.Controllers
     {
         private readonly IEmployeeService _employeeService;
         private readonly IWorkScheduleService _scheduleService;
+        public static bool RegistrationOpen = false;
 
         public WorkScheduleController(IWorkScheduleService scheduleService, IEmployeeService employeeService)
         {
             _scheduleService = scheduleService;
             _employeeService = employeeService;
+        }
+        [HttpGet("registration-status")]
+        public IActionResult GetRegistrationStatus()
+        {
+            return Ok(new { isOpen = RegistrationOpen });
+        }
+
+        // --- 2. API Thay đổi trạng thái cổng (Dành cho Quản lý) ---
+        [HttpPost("toggle-registration")]
+        public IActionResult ToggleRegistration([FromQuery] bool status)
+        {
+            RegistrationOpen = status;
+            return Ok(new { isOpen = RegistrationOpen });
         }
 
         [HttpPost("register")]

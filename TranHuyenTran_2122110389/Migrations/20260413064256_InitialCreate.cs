@@ -28,22 +28,6 @@ namespace TranHuyenTran_2122110389.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Shifts",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    DeptType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Shifts", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Employees",
                 columns: table => new
                 {
@@ -55,7 +39,8 @@ namespace TranHuyenTran_2122110389.Migrations
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
                     PositionId = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    ResignationDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -66,6 +51,29 @@ namespace TranHuyenTran_2122110389.Migrations
                         principalTable: "Positions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Shifts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    DeptType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PositionId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Shifts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Shifts_Positions_PositionId",
+                        column: x => x.PositionId,
+                        principalTable: "Positions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,7 +166,6 @@ namespace TranHuyenTran_2122110389.Migrations
                     CheckOut = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsLate = table.Column<bool>(type: "bit", nullable: false),
                     IsEarly = table.Column<bool>(type: "bit", nullable: false),
-                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -180,12 +187,12 @@ namespace TranHuyenTran_2122110389.Migrations
             migrationBuilder.InsertData(
                 table: "Positions",
                 columns: new[] { "Id", "HourlyRate", "MaxShiftPerDay", "MinStaff", "Name" },
-                values: new object[] { 1, 50000m, 1, 1, "Quản lý" });
+                values: new object[] { 1, 0m, 1, 1, "Quản lý" });
 
             migrationBuilder.InsertData(
                 table: "Employees",
-                columns: new[] { "Id", "Email", "IsActive", "Name", "Password", "Phone", "PositionId", "Role" },
-                values: new object[] { 1, "admin@gmail.com", true, "Admin", "$2a$11$cKSkJozZDgiUzhkPL6CJeODJXrHDXPYQ1Ntc1lHTBkimTHOqmRRwC", "0912345678", 1, 0 });
+                columns: new[] { "Id", "Email", "IsActive", "Name", "Password", "Phone", "PositionId", "ResignationDate", "Role" },
+                values: new object[] { 1, "huyentran@gmail.com", true, "Trần Huyền Trân", "$2a$11$bRtU6aa88S.UeJ2.GWEWV..VqLM9lzEueYG1DBP8uJEm8m2gUdS1u", "0912345678", 1, null, 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendances_EmployeeId",
@@ -211,6 +218,11 @@ namespace TranHuyenTran_2122110389.Migrations
                 name: "IX_Salaries_EmployeeId",
                 table: "Salaries",
                 column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shifts_PositionId",
+                table: "Shifts",
+                column: "PositionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkSchedules_EmployeeId",
