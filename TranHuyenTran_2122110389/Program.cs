@@ -103,11 +103,18 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
+
+
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cafe API v1");
+    c.RoutePrefix = "swagger"; // Đảm bảo đường dẫn là /swagger
+});
 // 5. Cấu hình Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cafe API v1"));
+    //app.UseSwagger();
+    //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cafe API v1"));
 }
 
 app.UseHttpsRedirection();
