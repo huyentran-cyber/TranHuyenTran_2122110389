@@ -115,6 +115,8 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                 .Select(s => new WorkScheduleDTO
                 {
                     Id = s.Id,
+                    EmployeeId = s.EmployeeId,
+                    ShiftId = s.ShiftId,
                     ShiftName = s.Shift != null ? s.Shift.Name : "N/A",
                     StartTime = s.Shift != null ? s.Shift.StartTime : TimeSpan.Zero,
                     EndTime = s.Shift != null ? s.Shift.EndTime : TimeSpan.Zero,
