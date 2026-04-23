@@ -60,7 +60,7 @@ builder.Services.AddControllers()
 
       // 3. Bỏ qua các trường NULL
       options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-
+      options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
 
 
   });
@@ -97,7 +97,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowAll", policy => {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.WithOrigins("https://fontend-cafe.vercel.app").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
     });
 });
 
@@ -117,9 +117,8 @@ if (app.Environment.IsDevelopment())
     //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cafe API v1"));
 }
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-
+//app.UseHttpsRedirection();
+app.UseCors("AllowAll");    
 app.UseAuthentication(); // Giải mã token
 app.UseAuthorization(); //ktra quyền
 

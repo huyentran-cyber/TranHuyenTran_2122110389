@@ -19,6 +19,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         // Chỉ lấy nhân viên đang hoạt động (IsActive = true)
         public async Task<IEnumerable<Employee>> GetAllAsync(int? month = null, int? year = null, string status = "all")
         {
+            status = string.IsNullOrEmpty(status) ? "all" : status.ToLower();
             var query = _context.Employees
             .Include(x => x.Position)
             .Include(x => x.WorkSchedules)

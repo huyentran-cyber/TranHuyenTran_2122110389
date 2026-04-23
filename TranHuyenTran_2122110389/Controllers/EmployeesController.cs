@@ -25,7 +25,7 @@ namespace TranHuyenTran_2122110389.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int? month, [FromQuery] int? year, [FromQuery] string status = "all")
         {
-            var employees = await _service.GetAllAsync();
+            var employees = await _service.GetAllAsync(month, year, status);
             return Ok(employees);
         }
 

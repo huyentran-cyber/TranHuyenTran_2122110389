@@ -31,9 +31,9 @@ namespace TranHuyenTran_2122110389.Models
         [ForeignKey("PositionId")]
         public Position? Position { get; set; }
 
-        [JsonIgnore]
+        
         public ICollection<WorkSchedule>? WorkSchedules { get; set; }
-        [JsonIgnore]
+      
         public ICollection<Attendance>? Attendances { get; set; }
 
         public bool IsActive { get; set; } = true;

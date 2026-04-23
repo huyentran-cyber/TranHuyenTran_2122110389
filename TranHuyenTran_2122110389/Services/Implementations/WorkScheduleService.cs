@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using TranHuyenTran_2122110389.Controllers;
 using TranHuyenTran_2122110389.Data;
@@ -104,36 +104,27 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         }
 
         public async Task<IEnumerable<WorkScheduleDTO>> GetMySchedulesAsync(int employeeId, int month, int year)
-
         {
-            var schedules = await _context.WorkSchedules
+            return await _context.WorkSchedules
                 .Include(s => s.Shift)
-                .Include(s => s.Employee)
-                    .ThenInclude(e => e.Attendances) // Lấy kèm lịch sử chấm công
                 .Where(s => s.EmployeeId == employeeId &&
                             s.WorkDate.Month == month &&
                             s.WorkDate.Year == year)
                 .OrderByDescending(s => s.WorkDate)
+                .Select(s => new WorkScheduleDTO
+                {
+                    Id = s.Id,
+                    ShiftName = s.Shift != null ? s.Shift.Name : "N/A",
+                    StartTime = s.Shift != null ? s.Shift.StartTime : TimeSpan.Zero,
+                    EndTime = s.Shift != null ? s.Shift.EndTime : TimeSpan.Zero,
+                    WorkDate = s.WorkDate,
+                    Status = s.Status,
+                    // Lấy dữ liệu chấm công trực tiếp từ quan hệ s.Attendances (liên kết qua ScheduleId)
+                    CheckInTime = s.Attendances.FirstOrDefault().CheckIn,
+                    CheckOutTime = s.Attendances.FirstOrDefault().CheckOut,
+                    AttendanceStatus = s.Attendances.FirstOrDefault().Status
+                })
                 .ToListAsync();
-
-            return schedules.Select(s => new WorkScheduleDTO
-            {
-                Id = s.Id,
-                ShiftName = s.Shift?.Name,
-                StartTime = s.Shift?.StartTime ?? TimeSpan.Zero,
-                EndTime = s.Shift?.EndTime ?? TimeSpan.Zero,
-                WorkDate = s.WorkDate,
-                Status = s.Status,
-                // Tìm bản ghi chấm công khớp với ngày làm việc này
-                // (Giả sử bạn gán dữ liệu này vào 2 trường mới trong DTO hoặc dùng chung object Attendance)
-                CheckInTime = s.Employee?.Attendances?
-                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.CheckIn,
-                CheckOutTime = s.Employee?.Attendances?
-                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.CheckOut,
-                // Lấy status chấm công để biết muộn/về sớm bao nhiêu phút
-                AttendanceStatus = s.Employee?.Attendances?
-                    .FirstOrDefault(a => a.CheckIn.Date == s.WorkDate.Date)?.Status
-            }).ToList();
         }
 
         public async Task<IEnumerable<Shift>> GetAvailableShiftsForEmployeeAsync(int employeeId)
