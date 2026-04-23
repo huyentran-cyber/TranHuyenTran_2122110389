@@ -107,6 +107,7 @@ namespace TranHuyenTran_2122110389.Services.Implementations
         {
             return await _context.WorkSchedules
                 .Include(s => s.Shift)
+                .Include(s => s.Attendances) // Đảm bảo nạp dữ liệu điểm danh
                 .Where(s => s.EmployeeId == employeeId &&
                             s.WorkDate.Month == month &&
                             s.WorkDate.Year == year)
@@ -119,10 +120,10 @@ namespace TranHuyenTran_2122110389.Services.Implementations
                     EndTime = s.Shift != null ? s.Shift.EndTime : TimeSpan.Zero,
                     WorkDate = s.WorkDate,
                     Status = s.Status,
-                    // Lấy dữ liệu chấm công trực tiếp từ quan hệ s.Attendances (liên kết qua ScheduleId)
-                    CheckInTime = s.Attendances.FirstOrDefault().CheckIn,
-                    CheckOutTime = s.Attendances.FirstOrDefault().CheckOut,
-                    AttendanceStatus = s.Attendances.FirstOrDefault().Status
+                    // Lấy dữ liệu chấm công an toàn bằng cách Select từng trường trước khi FirstOrDefault
+                    CheckInTime = s.Attendances.Select(a => (DateTime?)a.CheckIn).FirstOrDefault(),
+                    CheckOutTime = s.Attendances.Select(a => a.CheckOut).FirstOrDefault(),
+                    AttendanceStatus = s.Attendances.Select(a => a.Status).FirstOrDefault()
                 })
                 .ToListAsync();
         }
